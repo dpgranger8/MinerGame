@@ -8,14 +8,12 @@
     <script defer src="./src/script.js"></script>
 </head>
 <body class="flex h-screen w-screen">
-    <div class="flex flex-col justify-between h-1/2 w-1/2 bg-green-200 rounded-2xl m-auto p-10">
-        <!-- Display -->
-        <div class="">
-            Welcome to my mining game!
+    <div class="absolute right-10 top-10">
+        <div id="balance", class="flex flex-col justify-center bg-gradient-to-b from-green-200 to-green-300 rounded-2xl m-auto p-10 mb-10">
+            <span>Balance</span>
+            <span id="display">0</span>
         </div>
-        <div id="display" class="flex text-4xl truncate"></div>
-        <!-- Buttons -->
-        <div id="minegrid" class="grid grid-cols-4 gap-4 bottom-0">
+        <div id="minegrid" class="grid grid-cols-8 gap-0 bottom-0">
             
         </div>
     </div>

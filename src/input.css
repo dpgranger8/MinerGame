@@ -1,17 +1,18 @@
 @import "tailwindcss";
+@import url(https://fonts.googleapis.com/css?family=Lato:700);
 
 :root {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Lato", Helvetica, sans-serif;
 }
 
-#nodebutton {
-    background-color: rgba(107, 114, 128, 0.5);
+button.nodeButton {
     backdrop-filter: blur(4px);
+    width: 30px;
+    height: 30px;
     border-radius: 5px;
-    padding: 0.75rem;
-    font-size: 1.5rem;
+    font-size: small;
+}
 
-    &:hover {
-        background-color: antiquewhite;
-    }
+#balance {
+    height: 100px;
 }
