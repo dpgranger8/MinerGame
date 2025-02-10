@@ -12,24 +12,34 @@
         let endAngle = 0;
         let interval;
 
-        button.addEventListener("mouseover", function () {
-            if (!interval) {
-                interval = setInterval(() => {
-                    endAngle += 1;
-                    button.style.background = `conic-gradient(aquamarine 0deg, lime ${endAngle}deg, rgba(111, 111, 111, 0.5) ${endAngle}deg, rgba(111, 111, 111, 0.2) 360deg)`;
-                    if (endAngle >= 360) {
-                        endAngle = 0;
-                        let currentValue = parseInt(display.textContent);
-                        display.textContent = currentValue + 10;
-                    }
-                }, 10);
-            }
+        button.addEventListener("mouseover", () => {
+            clearInterval(interval)
+            interval = undefined
+            interval = setInterval(() => {
+                endAngle += 1;
+                button.style.background = `conic-gradient(aquamarine 0deg, lime ${endAngle}deg, rgba(111, 111, 111, 0.5) ${endAngle}deg, rgba(111, 111, 111, 0.2) 360deg)`;
+                if (endAngle >= 360) {
+                    endAngle = 0;
+                    let currentValue = parseInt(display.textContent);
+                    display.textContent = currentValue + 10;
+                }
+            }, 10);
         });
 
-        button.addEventListener("mouseleave", function () {
+        button.addEventListener("mouseleave", () => {
             if (interval) {
                 clearInterval(interval);
                 interval = undefined;
+                interval = setInterval(() => {
+                    endAngle -= 1;
+                    button.style.background = `conic-gradient(aquamarine 0deg, lime ${endAngle}deg, rgba(111, 111, 111, 0.5) ${endAngle}deg, rgba(111, 111, 111, 0.2) 360deg)`;
+                    if (endAngle == 0) {
+                        endAngle = 0;
+                        clearInterval(interval)
+                        interval = undefined
+                        button.style.background = "linear-gradient(rgba(111, 111, 111, 0.2), rgba(111, 111, 111, 0.5)";
+                    }
+                }, 50)
             }
         })
         grid.appendChild(button);
