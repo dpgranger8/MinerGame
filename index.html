@@ -8,13 +8,20 @@
     <script defer src="./src/script.js"></script>
 </head>
 <body class="flex h-screen w-screen">
-    <div class="absolute right-10 top-10">
-        <div id="balance", class="flex flex-col justify-center bg-gradient-to-b from-green-200 to-green-300 rounded-2xl m-auto p-10 mb-10">
+    <div class="flex w-screen flex-col items-center absolute top-10">
+        <div id="balance", class="flex w-3/4 justify-between bg-gradient-to-b from-green-200 to-green-300 rounded-2xl p-10 mb-10">
             <span>Balance</span>
             <span id="display">0</span>
         </div>
         <div id="minegrid" class="grid grid-cols-8 gap-0 bottom-0">
             <!-- Grid is populated by script -->
+        </div>
+        <div id="rewards" class="flex w-3/4 flex-col justify-center bg-gradient-to-b from-blue-200 to-blue-300 rounded-2xl mt-10 mb-10 p-10">
+            <div class="flex justify-between mb-5">
+                <span>Rarity</span>
+                <span>Chance</span>
+                <span>Reward</span>
+            </div>
         </div>
     </div>
 </body>

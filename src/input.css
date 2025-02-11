@@ -1,11 +1,12 @@
 @import "tailwindcss";
-@import url(https://fonts.googleapis.com/css?family=Lato:700);
 
 /* always run this command in the terminal before editing */
 /* npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch */
 
+/*Colorfarm v1*/
+
 :root {
-    font-family: "Lato", Helvetica, sans-serif;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 button.nodeButton {
@@ -40,6 +41,6 @@ button.nodeButton {
 }
 
 @keyframes moveUp {
-    from {transform: translateY(10px); opacity: 0;}
-    to {transform: translateY(-30px); opacity: 1;}
+    from {transform: translateY(-15px); opacity: 0;}
+    to {transform: translateY(-35px); opacity: 1;}
 }
