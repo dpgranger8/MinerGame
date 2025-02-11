@@ -1,12 +1,17 @@
 @import "tailwindcss";
 @import url(https://fonts.googleapis.com/css?family=Lato:700);
 
+/* always run this command in the terminal before editing */
+/* npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch */
+
 :root {
     font-family: "Lato", Helvetica, sans-serif;
 }
 
 button.nodeButton {
-    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 30px;
     height: 30px;
     border-radius: 5px;
@@ -15,4 +20,26 @@ button.nodeButton {
 
 #balance {
     height: 100px;
+}
+
+.extraPadding {
+    display: flex;
+    border: 1px solid transparent;
+}
+
+.extraPadding:hover {
+    border: 1px solid black;
+}
+
+.bonusToast {
+    display: inline-flex;
+    background: transparent;
+    color: red;
+    animation-name: moveUp;
+    animation-duration: 0.6s;
+}
+
+@keyframes moveUp {
+    from {transform: translateY(10px); opacity: 0;}
+    to {transform: translateY(-30px); opacity: 1;}
 }
