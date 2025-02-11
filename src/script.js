@@ -1,26 +1,30 @@
-let state = {
-    endAngle: 0,
-    interval: null
-};
-
 (function() {
     const grid = document.getElementById("minegrid");
     const display = document.getElementById("display");
 
     for (let i = 0; i < 64; i++) {
 
+        let state = {
+            endAngle: 0,
+            interval: null,
+            gradientUnsetLight: "rgba(111, 111, 111, 0.2)",
+            gradientUnsetDark: "rgba(111, 111, 111, 0.5)",
+            gradientProgressedLight: "aquamarine",
+            gradientProgressedDark: "lime"
+        };
+
         let button = document.createElement("button");
         button.classList.add("nodeButton");
         button.id = i;
-        button.style.background = "linear-gradient(rgba(111, 111, 111, 0.2), rgba(111, 111, 111, 0.5)";
+        button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark}`;
         // button.textContent = 1;
 
         button.addEventListener("mouseover", () => {
-            increaseGradient(button, display, state, 10, [["rgba(111, 111, 111, 0.2)", "rgba(111, 111, 111, 0.5)"], ["aquamarine", "lime"]], 10)
+            increaseGradient(button, display, state, 10, [[state.gradientUnsetLight, state.gradientUnsetDark], [state.gradientProgressedLight, state.gradientProgressedDark]], 10)
         });
 
         button.addEventListener("mouseleave", () => {
-            decreaseGradient(button, state, 50, [["rgba(111, 111, 111, 0.2)", "rgba(111, 111, 111, 0.5)"], ["aquamarine", "lime"]])
+            decreaseGradient(button, state, 50, [[state.gradientUnsetLight, state.gradientUnsetDark], [state.gradientProgressedLight, state.gradientProgressedDark]])
         })
         grid.appendChild(button);
     }
