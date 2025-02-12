@@ -1,11 +1,13 @@
 const rewards = {
-    common: {rarity: "common", bonus: 1, colors: ["aquamarine", "lime"], chance: 60},
-    uncommon: {rarity: "uncommon", bonus: 5, colors: ["aqua", "darkturquoise"], chance: 25},
-    rare: {rarity: "rare", bonus: 10, colors: ["pink", "hotpink"], chance: 8},
-    epic: {rarity: "epic", bonus: 50, colors: ["indianred", "crimson"], chance: 5},
-    legendary: {rarity: "legendary", bonus: 100, colors: ["yellow", "gold"], chance: 1.9},
-    mythic: {rarity: "mythic", bonus: 5000, colors: ["ghostwhite", "gainsboro"], chance: 0.1}
+    common: {rarity: "common", bonus: 1, colors: ["aquamarine", "lime"], chance: 66},
+    uncommon: {rarity: "uncommon", bonus: 5, colors: ["aqua", "darkturquoise"], chance: 20},
+    rare: {rarity: "rare", bonus: 10, colors: ["pink", "hotpink"], chance: 6},
+    epic: {rarity: "epic", bonus: 50, colors: ["violet", "purple"], chance: 2},
+    legendary: {rarity: "legendary", bonus: 100, colors: ["yellow", "gold"], chance: 0.99},
+    mythic: {rarity: "mythic", bonus: 10000, colors: ["ghostwhite", "gainsboro"], chance: 0.01}
 };
+
+// 65.53\ e^{-1.156x}
 
 let shopUpgrades = {
     farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0}
@@ -62,6 +64,7 @@ function increaseGradient(button, balance, state, ms, [gradientUnset1, gradientU
             state.endAngle = 0;
             let currentValue = parseInt(balance.textContent);
             balance.textContent = currentValue + state.currentItem.bonus;
+            bonusToast(balance, state.currentItem.bonus, "+", true);
             bonusToast(button, state.currentItem.bonus, "+", false);
             state.currentItem = chooseRarity();
         }
@@ -149,19 +152,15 @@ function populateRewards() {
 }
 
 function chooseRarity() {
-    let num = getRandomInt(1, 1000);
-    if (num > 400) {
-        return rewards.common;
-    } else if (num > 150) {
-        return rewards.uncommon;
-    } else if (num > 70) {
-        return rewards.rare;
-    } else if (num > 20) {
-        return rewards.epic;
-    } else if (num > 2) {
-        return rewards.legendary;
-    } else {
-        return rewards.mythic;
+    let num = getRandomInt(1, 10000);
+    
+    let threshold = 0;
+    
+    for (let key of Object.keys(rewards)) {
+        threshold += rewards[key].chance * 100;
+        if (num <= threshold) {
+            return rewards[key];
+        }
     }
 }
 
@@ -243,10 +242,8 @@ function buyAnimation(button) {
     button.style.transition = "0.1s ease";
     setTimeout(() => {
         button.style.transform = "scale(1.05)";
-        button.style.transform = "scale(1.05)";
     }, 100);
     setTimeout(() => {
         button.style.transform = "scale(1)";
-        button.style.transform = "scale(1)";
-    }, 200);
+    }, 100);
 }
