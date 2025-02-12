@@ -41,6 +41,21 @@ button.nodeButton {
     pointer-events: none;
 }
 
+.shopButton:hover {
+    background-color: gainsboro;
+}
+
+.shopButton:hover .toolTip {
+    visibility: visible;
+}
+
+.toolTip {
+    visibility: hidden;
+    width: 300px;
+    bottom: 110%;
+    left: 0%;
+}
+
 @keyframes moveUp {
     from {transform: translateY(-15px); opacity: 0;}
     to {transform: translateY(-35px); opacity: 1;}

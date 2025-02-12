@@ -2,10 +2,14 @@ const rewards = {
     common: ["common", 1, ["aquamarine", "lime"], 60],
     uncommon: ["uncommon", 5, ["aqua", "darkturquoise"], 25],
     rare: ["rare", 10, ["pink", "hotpink"], 8],
-    epic: ["epic", 50, ["lightCoral", "crimson"], 5],
+    epic: ["epic", 50, ["indianred", "crimson"], 5],
     legendary: ["legendary", 100, ["yellow", "gold"], 1.9],
-    mythic: ["mythic", 500, ["ghostwhite", "gainsboro"], 0.1]
+    mythic: ["mythic", 5000, ["ghostwhite", "gainsboro"], 0.1]
 };
+
+const shopUpgrades = [
+    ["Farm Speed", "./rake.png"]
+];
 
 (function() {
     const grid = document.getElementById("minegrid");
@@ -13,6 +17,7 @@ const rewards = {
     const display = document.getElementById("display");
 
     populateRewards();
+    populateShop();
 
     for (let i = 0; i < 64; i++) {
 
@@ -101,8 +106,6 @@ function capitalize(str) {
 
 function populateRewards() {
     const rewardsContainer = document.getElementById("rewards");
-    let newelement = document.createElement("h1");
-    newelement.textContent = "hello";
 
     for (let key in rewards) {
         let item = rewards[key];
@@ -156,5 +159,28 @@ function chooseRarity() {
         return rewards.legendary;
     } else {
         return rewards.mythic;
+    }
+}
+
+function populateShop() {
+    const shopContainer = document.getElementById("shopContainer");
+
+    for (let key in shopUpgrades) {
+        let item = shopUpgrades[key];
+        let shopButton = document.createElement("button");
+        shopButton.classList.add("shopButton", "relative", `bg-[url(${item[1]})]`, "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
+
+        shopContainer.appendChild(shopButton);
+
+        let toolTip = document.createElement("span");
+        toolTip.classList.add("toolTip", "absolute", "z-1", "rounded-md", "p-5", "bg-gray-300/50", "backdrop-blur-sm");
+        toolTip.textContent = "Upgrade "+ item[0];
+
+        let upgrade = document.createElement("div");
+        upgrade.classList.add("absolute", "bottom-0", "right-0", "pr-0.5");
+        upgrade.textContent = 0;
+
+        shopButton.appendChild(toolTip);
+        shopButton.appendChild(upgrade);
     }
 }
