@@ -38,7 +38,7 @@ button.nodeButton {
 }
 
 .bonusToast {
-    display: inline-flex;
+    position: absolute;
     background: transparent;
     color: red;
     animation-name: moveUp;
@@ -47,7 +47,7 @@ button.nodeButton {
 }
 
 .shopButton:hover {
-    background-color: gainsboro;
+    box-shadow: -1px 2px 3px black;
 }
 
 .shopButton:hover .toolTip {

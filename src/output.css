@@ -707,6 +707,9 @@
       max-width: 96rem !important;
     }
   }
+  .mt-5 {
+    margin-top: calc(var(--spacing) * 5);
+  }
   .mt-10 {
     margin-top: calc(var(--spacing) * 10);
   }
@@ -928,6 +931,14 @@
   .translate-full {
     --tw-translate-x: 100%;
     --tw-translate-y: 100%;
+    translate: var(--tw-translate-x) var(--tw-translate-y);
+  }
+  .-translate-x-1 {
+    --tw-translate-x: calc(var(--spacing) * -1);
+    translate: var(--tw-translate-x) var(--tw-translate-y);
+  }
+  .-translate-y-6 {
+    --tw-translate-y: calc(var(--spacing) * -6);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
   .-translate-z-px {
@@ -1809,6 +1820,9 @@
   .\[color\:red\]\/50\! {
     color: color-mix(in oklab, red 50%, transparent) !important;
   }
+  .text-red-500 {
+    color: var(--color-red-500);
+  }
   .capitalize {
     text-transform: capitalize;
   }
@@ -2285,7 +2299,7 @@ button.nodeButton {
   border: 1px solid black;
 }
 .bonusToast {
-  display: inline-flex;
+  position: absolute;
   background: transparent;
   color: red;
   animation-name: moveUp;
@@ -2293,7 +2307,7 @@ button.nodeButton {
   pointer-events: none;
 }
 .shopButton:hover {
-  background-color: gainsboro;
+  box-shadow: -1px 2px 3px black;
 }
 .shopButton:hover .toolTip {
   visibility: visible;

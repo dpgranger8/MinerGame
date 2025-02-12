@@ -1,10 +1,10 @@
 const rewards = {
-    common: ["common", 1, ["aquamarine", "lime"], 60],
-    uncommon: ["uncommon", 5, ["aqua", "darkturquoise"], 25],
-    rare: ["rare", 10, ["pink", "hotpink"], 8],
-    epic: ["epic", 50, ["indianred", "crimson"], 5],
-    legendary: ["legendary", 100, ["yellow", "gold"], 1.9],
-    mythic: ["mythic", 5000, ["ghostwhite", "gainsboro"], 0.1]
+    common: {rarity: "common", bonus: 1, colors: ["aquamarine", "lime"], chance: 60},
+    uncommon: {rarity: "uncommon", bonus: 5, colors: ["aqua", "darkturquoise"], chance: 25},
+    rare: {rarity: "rare", bonus: 10, colors: ["pink", "hotpink"], chance: 8},
+    epic: {rarity: "epic", bonus: 50, colors: ["indianred", "crimson"], chance: 5},
+    legendary: {rarity: "legendary", bonus: 100, colors: ["yellow", "gold"], chance: 1.9},
+    mythic: {rarity: "mythic", bonus: 5000, colors: ["ghostwhite", "gainsboro"], chance: 0.1}
 };
 
 let shopUpgrades = {
@@ -14,7 +14,7 @@ let shopUpgrades = {
 (function() {
     const grid = document.getElementById("minegrid");
     const increaseHitbox = document.getElementById("extraPadding");
-    const display = document.getElementById("display");
+    const balance = document.getElementById("display");
 
     populateRewards();
     populateShop();
@@ -39,7 +39,7 @@ let shopUpgrades = {
         // button.textContent = 1;
 
         margin.addEventListener("mouseover", () => {
-            increaseGradient(button, display, state, 1, [state.gradientUnsetLight, state.gradientUnsetDark])
+            increaseGradient(button, balance, state, 1, [state.gradientUnsetLight, state.gradientUnsetDark])
         });
 
         margin.addEventListener("mouseleave", () => {
@@ -52,17 +52,17 @@ let shopUpgrades = {
 })();
 
 
-function increaseGradient(button, display, state, ms, [gradientUnset1, gradientUnset2]) {
+function increaseGradient(button, balance, state, ms, [gradientUnset1, gradientUnset2]) {
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
-        state.endAngle += (0.5 + (shopUpgrades.farmspeed.level / 10));
-        button.style.background = `conic-gradient(${state.currentItem[2][0]} 0deg, ${state.currentItem[2][1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
+        state.endAngle += 10 + (0.5 + (shopUpgrades.farmspeed.level / 10));
+        button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
         if (state.endAngle >= 360) {
             state.endAngle = 0;
-            let currentValue = parseInt(display.textContent);
-            display.textContent = currentValue + state.currentItem[1];
-            bonusToast(button, state.currentItem[1]);
+            let currentValue = parseInt(balance.textContent);
+            balance.textContent = currentValue + state.currentItem.bonus;
+            bonusToast(button, state.currentItem.bonus, "+", false);
             state.currentItem = chooseRarity();
         }
     }, ms);
@@ -74,7 +74,7 @@ function decreaseGradient(button, state, ms, [gradientUnset1, gradientUnset2]) {
         state.interval = undefined;
         state.interval = setInterval(() => {
             state.endAngle -= 1;
-            button.style.background = `conic-gradient(${state.currentItem[2][0]} 0deg, ${state.currentItem[2][1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
+            button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
             if (state.endAngle <= 0) {
                 state.endAngle = 0;
                 clearInterval(state.interval)
@@ -85,10 +85,13 @@ function decreaseGradient(button, state, ms, [gradientUnset1, gradientUnset2]) {
     }
 }
 
-function bonusToast(button, bonus) {
+function bonusToast(button, bonus, plusOrMinus, upMore) {
     let toast = document.createElement("div");
     toast.classList.add("bonusToast");
-    toast.textContent = "+" + bonus;
+    if (upMore) {
+        toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
+    }
+    toast.textContent = plusOrMinus + bonus;
     button.appendChild(toast);
     setTimeout(() => toast.remove(), 500);
 }
@@ -117,19 +120,19 @@ function populateRewards() {
 
         let nodeButton = document.createElement("button");
         nodeButton.classList.add("nodeButton");
-        nodeButton.style.background = `linear-gradient(${item[2][0]}, ${item[2][1]}`;
+        nodeButton.style.background = `linear-gradient(${item.colors[0]}, ${item.colors[1]}`;
 
         let labelDiv = document.createElement("div");
         labelDiv.classList.add("flex", "self-center", "ml-3");
-        labelDiv.textContent = capitalize(item[0]);
+        labelDiv.textContent = capitalize(item.rarity);
 
         let chanceDiv = document.createElement("div");
         chanceDiv.classList.add("flex", "justify-center",  "self-center", "ml-3");
-        chanceDiv.textContent = item[3] + "%";
+        chanceDiv.textContent = item.chance + "%";
 
         let rewardDiv = document.createElement("div");
         rewardDiv.classList.add("flex", "basis-1/3", "justify-end", "self-center", "ml-3");
-        rewardDiv.textContent = item[1];
+        rewardDiv.textContent = item.bonus;
 
         let spacer = document.createElement("div");
         spacer.classList.add("flex-grow");
@@ -164,6 +167,7 @@ function chooseRarity() {
 
 function populateShop() {
     const shopContainer = document.getElementById("shopContainer");
+    const balance = document.getElementById("display");
 
     for (let key in shopUpgrades) {
         let item = shopUpgrades[key];
@@ -171,16 +175,44 @@ function populateShop() {
         shopButton.style.backgroundImage = `url(${item.image})`;
         shopButton.classList.add("shopButton", "relative", "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
         shopButton.addEventListener("click", () => {
-            shopUpgrades[key].level += 1;
-            shopUpgrades[key].modifier += 0.1;
-            upgrade.textContent = shopUpgrades[key].level
+            let cost = (item.level + 1) * 10;
+            if (balance.textContent >= cost) {
+                shopUpgrades[key].level += 1;
+                shopUpgrades[key].modifier += 0.1;
+                upgrade.textContent = shopUpgrades[key].level
+                costLabel.textContent = (item.level + 1) * 10;
+                balance.textContent -= cost;
+                bonusToast(balance, cost, "-", true);
+                buyAnimation(shopButton);
+            } else {
+                noBuyAnimation(shopButton);
+            }
         });
 
         shopContainer.appendChild(shopButton);
 
-        let toolTip = document.createElement("span");
-        toolTip.classList.add("toolTip", "absolute", "z-1", "rounded-md", "p-5", "bg-gray-300/50", "backdrop-blur-sm");
-        toolTip.textContent = "Upgrade "+ item.name;
+        let toolTip = document.createElement("div");
+        toolTip.classList.add("toolTip", "absolute", "z-1", "rounded-md", "p-5", "bg-gray-300/50", "backdrop-blur-sm", "flex", "flex-col", "items-center", "border-1");
+
+        let title = document.createElement("div");
+        title.classList.add("w-7/8");
+        title.textContent = "Upgrade "+ item.name;
+
+        let rowItem = document.createElement("div");
+        rowItem.classList.add("flex", "flex-row", "justify-between", "w-7/8", "mt-5");
+
+        let cost = document.createElement("div");
+        cost.classList.add("flex");
+        cost.textContent = "Cost:";
+        
+        let costLabel = document.createElement("div");
+        costLabel.classList.add("flex", "text-red-500")
+        costLabel.textContent = (item.level + 1) * 10;
+
+        toolTip.appendChild(title);
+        toolTip.appendChild(rowItem);
+        rowItem.appendChild(cost);
+        rowItem.appendChild(costLabel)
 
         let upgrade = document.createElement("div");
         upgrade.classList.add("absolute", "bottom-0", "right-0", "pr-0.5");
@@ -189,4 +221,32 @@ function populateShop() {
         shopButton.appendChild(toolTip);
         shopButton.appendChild(upgrade);
     }
+}
+
+function noBuyAnimation(button) {
+    button.style.transition = "0.05s ease";
+    setTimeout(() => {
+        button.style.left = "4px";
+    }, 50);
+    setTimeout(() => {
+        button.style.left = "0px";
+    }, 100);
+    setTimeout(() => {
+        button.style.left = "-4px";
+    }, 150);
+    setTimeout(() => {
+        button.style.left = "0px";
+    }, 200);
+}
+
+function buyAnimation(button) {
+    button.style.transition = "0.1s ease";
+    setTimeout(() => {
+        button.style.transform = "scale(1.05)";
+        button.style.transform = "scale(1.05)";
+    }, 100);
+    setTimeout(() => {
+        button.style.transform = "scale(1)";
+        button.style.transform = "scale(1)";
+    }, 200);
 }
