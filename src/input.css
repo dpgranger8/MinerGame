@@ -38,6 +38,7 @@ button.nodeButton {
     color: red;
     animation-name: moveUp;
     animation-duration: 0.6s;
+    pointer-events: none;
 }
 
 @keyframes moveUp {

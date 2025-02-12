@@ -1,9 +1,9 @@
-let rewards = {
-    common: ["common", 1, ["aquamarine", "lime"], 50],
+const rewards = {
+    common: ["common", 1, ["aquamarine", "lime"], 60],
     uncommon: ["uncommon", 5, ["aqua", "darkturquoise"], 25],
-    rare: ["rare", 10, ["hotpink", "mediumvioletred"], 15],
-    epic: ["epic", 50, ["lightCoral", "crimson"], 7],
-    legendary: ["legendary", 100, ["yellow", "gold"], 2.9],
+    rare: ["rare", 10, ["pink", "hotpink"], 8],
+    epic: ["epic", 50, ["lightCoral", "crimson"], 5],
+    legendary: ["legendary", 100, ["yellow", "gold"], 1.9],
     mythic: ["mythic", 500, ["ghostwhite", "gainsboro"], 0.1]
 };
 
@@ -21,8 +21,7 @@ let rewards = {
             interval: null,
             gradientUnsetLight: "lemonchiffon",
             gradientUnsetDark: "moccasin",
-            gradientProgressedLight: "aquamarine",
-            gradientProgressedDark: "lime"
+            currentItem: chooseRarity()
         };
 
         let button = document.createElement("button");
@@ -35,11 +34,11 @@ let rewards = {
         // button.textContent = 1;
 
         margin.addEventListener("mouseover", () => {
-            increaseGradient(button, display, state, 1, [[state.gradientUnsetLight, state.gradientUnsetDark], [state.gradientProgressedLight, state.gradientProgressedDark]], 100000)
+            increaseGradient(button, display, state, 1, [state.gradientUnsetLight, state.gradientUnsetDark])
         });
 
         margin.addEventListener("mouseleave", () => {
-            decreaseGradient(button, state, 50, [[state.gradientUnsetLight, state.gradientUnsetDark], [state.gradientProgressedLight, state.gradientProgressedDark]])
+            decreaseGradient(button, state, 50, [state.gradientUnsetLight, state.gradientUnsetDark])
         })
 
         grid.appendChild(margin);
@@ -47,28 +46,30 @@ let rewards = {
     }
 })();
 
-function increaseGradient(button, display, state, ms, [[gradientUnset1, gradientUnset2], [gradientProgressed1, gradientProgressed2]], bonus) {
+
+function increaseGradient(button, display, state, ms, [gradientUnset1, gradientUnset2]) {
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
         state.endAngle += 1;
-        button.style.background = `conic-gradient(${gradientProgressed1} 0deg, ${gradientProgressed2} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
+        button.style.background = `conic-gradient(${state.currentItem[2][0]} 0deg, ${state.currentItem[2][1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
         if (state.endAngle >= 360) {
             state.endAngle = 0;
             let currentValue = parseInt(display.textContent);
-            display.textContent = currentValue + bonus;
-            bonusToast(button, bonus)
+            display.textContent = currentValue + state.currentItem[1];
+            bonusToast(button, state.currentItem[1]);
+            state.currentItem = chooseRarity();
         }
     }, ms);
 }
 
-function decreaseGradient(button, state, ms, [[gradientUnset1, gradientUnset2], [gradientProgressed1, gradientProgressed2]]) {
+function decreaseGradient(button, state, ms, [gradientUnset1, gradientUnset2]) {
     if (state.interval) {
         clearInterval(state.interval);
         state.interval = undefined;
         state.interval = setInterval(() => {
             state.endAngle -= 1;
-            button.style.background = `conic-gradient(${gradientProgressed1} 0deg, ${gradientProgressed2} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
+            button.style.background = `conic-gradient(${state.currentItem[2][0]} 0deg, ${state.currentItem[2][1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
             if (state.endAngle == 0) {
                 state.endAngle = 0;
                 clearInterval(state.interval)
@@ -88,7 +89,7 @@ function bonusToast(button, bonus) {
 }
 
 function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function capitalize(str) {
@@ -138,5 +139,22 @@ function populateRewards() {
         listItem.appendChild(itemGroupDiv);
         listItem.appendChild(chanceDiv);
         listItem.appendChild(rewardDiv)
+    }
+}
+
+function chooseRarity() {
+    let num = getRandomInt(1, 1000);
+    if (num > 400) {
+        return rewards.common;
+    } else if (num > 150) {
+        return rewards.uncommon;
+    } else if (num > 70) {
+        return rewards.rare;
+    } else if (num > 20) {
+        return rewards.epic;
+    } else if (num > 2) {
+        return rewards.legendary;
+    } else {
+        return rewards.mythic;
     }
 }
