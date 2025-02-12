@@ -17,6 +17,11 @@ button.nodeButton {
     height: 30px;
     border-radius: 5px;
     font-size: small;
+    cursor: url('../src/images/small-rake.png') 8 8, auto;
+}
+
+#minegrid {
+    cursor: url('../src/images/small-rake.png') 8 8, auto;
 }
 
 #balance {

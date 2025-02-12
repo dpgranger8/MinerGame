@@ -7,9 +7,9 @@ const rewards = {
     mythic: ["mythic", 5000, ["ghostwhite", "gainsboro"], 0.1]
 };
 
-const shopUpgrades = [
-    ["Farm Speed", "./rake.png"]
-];
+let shopUpgrades = {
+    farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0}
+};
 
 (function() {
     const grid = document.getElementById("minegrid");
@@ -56,7 +56,7 @@ function increaseGradient(button, display, state, ms, [gradientUnset1, gradientU
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
-        state.endAngle += 1;
+        state.endAngle += (0.5 + (shopUpgrades.farmspeed.level / 10));
         button.style.background = `conic-gradient(${state.currentItem[2][0]} 0deg, ${state.currentItem[2][1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
         if (state.endAngle >= 360) {
             state.endAngle = 0;
@@ -75,7 +75,7 @@ function decreaseGradient(button, state, ms, [gradientUnset1, gradientUnset2]) {
         state.interval = setInterval(() => {
             state.endAngle -= 1;
             button.style.background = `conic-gradient(${state.currentItem[2][0]} 0deg, ${state.currentItem[2][1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
-            if (state.endAngle == 0) {
+            if (state.endAngle <= 0) {
                 state.endAngle = 0;
                 clearInterval(state.interval)
                 state.interval = undefined
@@ -168,17 +168,23 @@ function populateShop() {
     for (let key in shopUpgrades) {
         let item = shopUpgrades[key];
         let shopButton = document.createElement("button");
-        shopButton.classList.add("shopButton", "relative", `bg-[url(${item[1]})]`, "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
+        shopButton.style.backgroundImage = `url(${item.image})`;
+        shopButton.classList.add("shopButton", "relative", "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
+        shopButton.addEventListener("click", () => {
+            shopUpgrades[key].level += 1;
+            shopUpgrades[key].modifier += 0.1;
+            upgrade.textContent = shopUpgrades[key].level
+        });
 
         shopContainer.appendChild(shopButton);
 
         let toolTip = document.createElement("span");
         toolTip.classList.add("toolTip", "absolute", "z-1", "rounded-md", "p-5", "bg-gray-300/50", "backdrop-blur-sm");
-        toolTip.textContent = "Upgrade "+ item[0];
+        toolTip.textContent = "Upgrade "+ item.name;
 
         let upgrade = document.createElement("div");
         upgrade.classList.add("absolute", "bottom-0", "right-0", "pr-0.5");
-        upgrade.textContent = 0;
+        upgrade.textContent = item.level;
 
         shopButton.appendChild(toolTip);
         shopButton.appendChild(upgrade);
