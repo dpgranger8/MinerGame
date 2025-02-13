@@ -707,6 +707,9 @@
       max-width: 96rem !important;
     }
   }
+  .mx-5 {
+    margin-inline: calc(var(--spacing) * 5);
+  }
   .mt-5 {
     margin-top: calc(var(--spacing) * 5);
   }
@@ -1692,6 +1695,9 @@
   .p-1 {
     padding: calc(var(--spacing) * 1);
   }
+  .p-2 {
+    padding: calc(var(--spacing) * 2);
+  }
   .p-5 {
     padding: calc(var(--spacing) * 5);
   }
@@ -1742,6 +1748,10 @@
   }
   .align-top {
     vertical-align: top;
+  }
+  .text-xl {
+    font-size: var(--text-xl);
+    line-height: var(--tw-leading, var(--text-xl--line-height));
   }
   .leading-none {
     --tw-leading: 1;
@@ -2289,6 +2299,8 @@ button.nodeButton {
   cursor: url('../src/images/small-rake.png') 8 8, auto;
 }
 #minegrid {
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url('../src/images/grass-sample.png');
+  background-size: contain;
   cursor: url('../src/images/small-rake.png') 8 8, auto;
 }
 #balance {
@@ -2317,7 +2329,7 @@ button.nodeButton {
 }
 .toolTip {
   visibility: hidden;
-  width: 300px;
+  width: 250px;
   bottom: 110%;
   left: 0%;
 }

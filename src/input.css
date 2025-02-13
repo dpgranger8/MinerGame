@@ -21,6 +21,8 @@ button.nodeButton {
 }
 
 #minegrid {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url('../src/images/grass-sample.png');
+    background-size: contain;
     cursor: url('../src/images/small-rake.png') 8 8, auto;
 }
 
@@ -56,7 +58,7 @@ button.nodeButton {
 
 .toolTip {
     visibility: hidden;
-    width: 300px;
+    width: 250px;
     bottom: 110%;
     left: 0%;
 }

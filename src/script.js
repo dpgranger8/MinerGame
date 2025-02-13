@@ -2,12 +2,10 @@ const rewards = {
     common: {rarity: "common", colors: ["aquamarine", "lime"], chance: 72, bonus: 1},
     uncommon: {rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: 20, bonus: 5},
     rare: {rarity: "rare", colors: ["pink", "hotpink"], chance: 6, bonus: 25},
-    epic: {rarity: "epic", colors: ["violet", "purple"], chance: 1.5, bonus: 100},
+    epic: {rarity: "epic", colors: ["lightsalmon", "darkorange"], chance: 1.5, bonus: 100},
     legendary: {rarity: "legendary",  colors: ["yellow", "gold"], chance: 0.49, bonus: 500},
     mythic: {rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: 0.01, bonus: 10000}
 };
-
-// 65.53\ e^{-1.156x}
 
 let shopUpgrades = {
     farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0, modifier: function(level) {return 0.5 + (level / 5);}, cost: function(level) {return (level + 3) ** 2;}}
@@ -178,11 +176,15 @@ function populateShop() {
 
         let title = document.createElement("div");
         title.classList.add("w-7/8");
-        title.textContent = "Upgrade "+ item.name;
+        title.textContent = item.name + " " + (item.level + 1);
 
         let rowItem = document.createElement("div");
-        rowItem.classList.add("flex", "flex-row", "justify-between", "w-7/8", "mt-5");
+        rowItem.classList.add("flex", "flex-row", "justify-between", "items-center", "w-7/8", "mt-5");
         let rowClone = rowItem.cloneNode(true);
+
+        let arrows = document.createElement("div");
+        arrows.classList.add("truncate", "mx-5", "text-center", "text-xl");
+        arrows.textContent = "➔";
 
         let cost = document.createElement("div");
         cost.classList.add("flex");
@@ -207,6 +209,7 @@ function populateShop() {
         rowItem.appendChild(cost);
         rowItem.appendChild(costLabel);
         rowClone.appendChild(modifier);
+        rowClone.appendChild(arrows);
         rowClone.appendChild(modifierUpgrade);
 
         let upgrade = document.createElement("div");
@@ -225,6 +228,8 @@ function populateShop() {
                 costLabel.textContent = item.cost(item.level);
                 modifier.textContent = item.modifier(item.level);
                 modifierUpgrade.textContent = item.modifier(item.level + 1);
+                upgrade.textContent = item.level;
+                title.textContent = item.name + " " + (item.level + 1);
                 bonusToast(balance, cost, "-", true);
                 buyAnimation(shopButton);
             } else {
