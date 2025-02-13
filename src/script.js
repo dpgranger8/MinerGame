@@ -1,9 +1,9 @@
 const rewards = {
-    common: {rarity: "common", bonus: 1, colors: ["aquamarine", "lime"], chance: 66},
+    common: {rarity: "common", bonus: 1, colors: ["aquamarine", "lime"], chance: 72},
     uncommon: {rarity: "uncommon", bonus: 5, colors: ["aqua", "darkturquoise"], chance: 20},
-    rare: {rarity: "rare", bonus: 10, colors: ["pink", "hotpink"], chance: 6},
-    epic: {rarity: "epic", bonus: 50, colors: ["violet", "purple"], chance: 2},
-    legendary: {rarity: "legendary", bonus: 100, colors: ["yellow", "gold"], chance: 0.99},
+    rare: {rarity: "rare", bonus: 25, colors: ["pink", "hotpink"], chance: 6},
+    epic: {rarity: "epic", bonus: 100, colors: ["violet", "purple"], chance: 1.5},
+    legendary: {rarity: "legendary", bonus: 500, colors: ["yellow", "gold"], chance: 0.49},
     mythic: {rarity: "mythic", bonus: 10000, colors: ["ghostwhite", "gainsboro"], chance: 0.01}
 };
 
@@ -58,7 +58,7 @@ function increaseGradient(button, balance, state, ms, [gradientUnset1, gradientU
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
-        state.endAngle += 10 + (0.5 + (shopUpgrades.farmspeed.level / 10));
+        state.endAngle += 10 + (0.5 + (shopUpgrades.farmspeed.level / 5));
         button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
         if (state.endAngle >= 360) {
             state.endAngle = 0;
@@ -153,7 +153,6 @@ function populateRewards() {
 
 function chooseRarity() {
     let num = getRandomInt(1, 10000);
-    
     let threshold = 0;
     
     for (let key of Object.keys(rewards)) {
@@ -176,9 +175,10 @@ function populateShop() {
         shopButton.addEventListener("click", () => {
             let cost = (item.level + 1) * 10;
             if (balance.textContent >= cost) {
+                shopButton.disabled = true
                 shopUpgrades[key].level += 1;
                 shopUpgrades[key].modifier += 0.1;
-                upgrade.textContent = shopUpgrades[key].level
+                upgrade.textContent = shopUpgrades[key].level;
                 costLabel.textContent = (item.level + 1) * 10;
                 balance.textContent -= cost;
                 bonusToast(balance, cost, "-", true);
@@ -240,10 +240,11 @@ function noBuyAnimation(button) {
 
 function buyAnimation(button) {
     button.style.transition = "0.1s ease";
-    setTimeout(() => {
-        button.style.transform = "scale(1.05)";
-    }, 100);
+    button.style.transform = "scale(0.95)";
     setTimeout(() => {
         button.style.transform = "scale(1)";
     }, 100);
+    setTimeout(() => {
+        button.disabled = false
+    }, 500)
 }
