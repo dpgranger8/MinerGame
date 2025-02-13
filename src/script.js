@@ -1,16 +1,16 @@
 const rewards = {
-    common: {rarity: "common", bonus: 1, colors: ["aquamarine", "lime"], chance: 72},
-    uncommon: {rarity: "uncommon", bonus: 5, colors: ["aqua", "darkturquoise"], chance: 20},
-    rare: {rarity: "rare", bonus: 25, colors: ["pink", "hotpink"], chance: 6},
-    epic: {rarity: "epic", bonus: 100, colors: ["violet", "purple"], chance: 1.5},
-    legendary: {rarity: "legendary", bonus: 500, colors: ["yellow", "gold"], chance: 0.49},
-    mythic: {rarity: "mythic", bonus: 10000, colors: ["ghostwhite", "gainsboro"], chance: 0.01}
+    common: {rarity: "common", colors: ["aquamarine", "lime"], chance: 72, bonus: 1},
+    uncommon: {rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: 20, bonus: 5},
+    rare: {rarity: "rare", colors: ["pink", "hotpink"], chance: 6, bonus: 25},
+    epic: {rarity: "epic", colors: ["violet", "purple"], chance: 1.5, bonus: 100},
+    legendary: {rarity: "legendary",  colors: ["yellow", "gold"], chance: 0.49, bonus: 500},
+    mythic: {rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: 0.01, bonus: 10000}
 };
 
 // 65.53\ e^{-1.156x}
 
 let shopUpgrades = {
-    farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0}
+    farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0, modifier: function(level) {return 0.5 + (level / 5);}, cost: function(level) {return (level + 3) ** 2;}}
 };
 
 (function() {
@@ -38,7 +38,6 @@ let shopUpgrades = {
 
         button.id = i;
         button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark}`;
-        // button.textContent = 1;
 
         margin.addEventListener("mouseover", () => {
             increaseGradient(button, balance, state, 1, [state.gradientUnsetLight, state.gradientUnsetDark])
@@ -58,7 +57,7 @@ function increaseGradient(button, balance, state, ms, [gradientUnset1, gradientU
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
-        state.endAngle += 10 + (0.5 + (shopUpgrades.farmspeed.level / 5));
+        state.endAngle += shopUpgrades.farmspeed.modifier(shopUpgrades.farmspeed.level);
         button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
         if (state.endAngle >= 360) {
             state.endAngle = 0;
@@ -172,22 +171,6 @@ function populateShop() {
         let shopButton = document.createElement("button");
         shopButton.style.backgroundImage = `url(${item.image})`;
         shopButton.classList.add("shopButton", "relative", "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
-        shopButton.addEventListener("click", () => {
-            let cost = (item.level + 1) * 10;
-            if (balance.textContent >= cost) {
-                shopButton.disabled = true
-                shopUpgrades[key].level += 1;
-                shopUpgrades[key].modifier += 0.1;
-                upgrade.textContent = shopUpgrades[key].level;
-                costLabel.textContent = (item.level + 1) * 10;
-                balance.textContent -= cost;
-                bonusToast(balance, cost, "-", true);
-                buyAnimation(shopButton);
-            } else {
-                noBuyAnimation(shopButton);
-            }
-        });
-
         shopContainer.appendChild(shopButton);
 
         let toolTip = document.createElement("div");
@@ -199,6 +182,7 @@ function populateShop() {
 
         let rowItem = document.createElement("div");
         rowItem.classList.add("flex", "flex-row", "justify-between", "w-7/8", "mt-5");
+        let rowClone = rowItem.cloneNode(true);
 
         let cost = document.createElement("div");
         cost.classList.add("flex");
@@ -206,12 +190,24 @@ function populateShop() {
         
         let costLabel = document.createElement("div");
         costLabel.classList.add("flex", "text-red-500")
-        costLabel.textContent = (item.level + 1) * 10;
+        costLabel.textContent = item.cost(item.level);
+
+        let modifier = document.createElement("div");
+        modifier.classList.add("flex");
+        modifier.textContent = item.modifier(item.level);
+
+        let modifierUpgrade = document.createElement("div");
+        modifierUpgrade.classList.add("flex", "text-blue-500")
+        modifierUpgrade.textContent = item.modifier(item.level + 1);
 
         toolTip.appendChild(title);
         toolTip.appendChild(rowItem);
+        toolTip.appendChild(rowClone);
+        
         rowItem.appendChild(cost);
-        rowItem.appendChild(costLabel)
+        rowItem.appendChild(costLabel);
+        rowClone.appendChild(modifier);
+        rowClone.appendChild(modifierUpgrade);
 
         let upgrade = document.createElement("div");
         upgrade.classList.add("absolute", "bottom-0", "right-0", "pr-0.5");
@@ -219,6 +215,22 @@ function populateShop() {
 
         shopButton.appendChild(toolTip);
         shopButton.appendChild(upgrade);
+
+        shopButton.addEventListener("click", () => {
+            let cost = item.cost(item.level)
+            if (balance.textContent >= cost) {
+                shopButton.disabled = true
+                item.level += 1;
+                balance.textContent -= cost;
+                costLabel.textContent = item.cost(item.level);
+                modifier.textContent = item.modifier(item.level);
+                modifierUpgrade.textContent = item.modifier(item.level + 1);
+                bonusToast(balance, cost, "-", true);
+                buyAnimation(shopButton);
+            } else {
+                noBuyAnimation(shopButton);
+            }
+        });
     }
 }
 
