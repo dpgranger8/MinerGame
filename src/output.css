@@ -1364,6 +1364,9 @@
   .rounded-md {
     border-radius: var(--radius-md);
   }
+  .rounded-sm {
+    border-radius: var(--radius-sm);
+  }
   .rounded-s {
     border-start-start-radius: 0.25rem;
     border-end-start-radius: 0.25rem;
@@ -1419,6 +1422,10 @@
   .border-1 {
     border-style: var(--tw-border-style);
     border-width: 1px;
+  }
+  .border-2 {
+    border-style: var(--tw-border-style);
+    border-width: 2px;
   }
   .border-x {
     border-inline-style: var(--tw-border-style);
@@ -1493,6 +1500,9 @@
   }
   .bg-\[var\(--my_variable\)\] {
     background-color: var(--my_variable);
+  }
+  .bg-cyan-100 {
+    background-color: var(--color-cyan-100);
   }
   .bg-gray-300\/50 {
     background-color: color-mix(in oklab, var(--color-gray-300) 50%, transparent);
@@ -1704,8 +1714,8 @@
   .p-10 {
     padding: calc(var(--spacing) * 10);
   }
-  .pr-0\.5 {
-    padding-right: calc(var(--spacing) * 0.5);
+  .px-0\.5 {
+    padding-inline: calc(var(--spacing) * 0.5);
   }
   .text-center {
     text-align: center;
@@ -1752,6 +1762,10 @@
   .text-xl {
     font-size: var(--text-xl);
     line-height: var(--tw-leading, var(--text-xl--line-height));
+  }
+  .text-base\/5 {
+    font-size: var(--text-base);
+    line-height: calc(var(--spacing) * 5);
   }
   .leading-none {
     --tw-leading: 1;
@@ -2296,12 +2310,12 @@ button.nodeButton {
   height: 30px;
   border-radius: 5px;
   font-size: small;
-  cursor: url('../src/images/small-rake.png') 8 8, auto;
+  cursor: url('../src/images/small-rake.png') 8 40, auto;
 }
 #minegrid {
   background: linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url('../src/images/grass-sample.png');
   background-size: contain;
-  cursor: url('../src/images/small-rake.png') 8 8, auto;
+  cursor: url('../src/images/small-rake.png') 8 40, auto;
 }
 #balance {
   height: 100px;
@@ -2312,6 +2326,10 @@ button.nodeButton {
 }
 .extraPadding:hover {
   border: 1px solid white;
+}
+.invisiblePadding {
+  display: flex;
+  border: 1px solid transparent;
 }
 .bonusToast {
   position: absolute;

@@ -8,8 +8,9 @@ const rewards = {
 };
 
 let shopUpgrades = {
-    farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: NaN, modifier: function(level) {return 0.5 + (level / 10);}, cost: function(level) {return (level + 5) ** 2;}},
-    raritytier: { name: "Add Color Rarity", image: "src/images/gem-stone.png", level: 0, maxLevel: 5, modifier: function(level) {return  level;}, cost: function(level) {return (1 * 10 ** level);}}
+    farmspeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: NaN, modifier: function(level) {return 0.5 + (level / 5);}, cost: function(level) {return (level + 5) ** 2;}, onUpgrade: function() {}},
+    raritytier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: 5, modifier: function(level) {return  level;}, cost: function(level) {return level == 0 ? 1 : (100 * level);}, onUpgrade: function() {resetColorGrid(); populateColorGrid();}},
+    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: 3, modifier: function(level) {return  level;}, cost: function(level) {return (100 * (level + 1));}, onUpgrade: function() {resetColorGrid(); populateColorGrid();}}
 };
 
 (function() {
@@ -28,7 +29,7 @@ function populateColorGrid() {
     const increaseHitbox = document.getElementById("extraPadding");
     const balance = document.getElementById("display");
 
-    for (let i = 0; i < 64; i++) {
+    for (let i = 1; i <= 64; i++) {
 
         let color1Choices = ["moccasin", "navajowhite"]
         let color2Choices = ["burlywood", "sandybrown"]
@@ -41,24 +42,32 @@ function populateColorGrid() {
             currentItem: chooseRarity()
         };
 
-        let button = document.createElement("button");
-        button.classList.add("nodeButton");
-        let margin = document.createElement("div");
-        margin.classList.add("extraPadding", "p-1", "flex");
+        if (getSquareSelection(shopUpgrades.expansion.level + 1).includes(i)) {
+            let button = document.createElement("button");
+            button.classList.add("nodeButton");
+            let margin = document.createElement("div");
+            margin.classList.add("extraPadding", "p-1", "flex");
 
-        button.id = i;
-        button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark}`;
+            button.id = i;
+            button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark}`;
 
-        margin.addEventListener("mouseover", () => {
-            increaseGradient(button, balance, state, 1, [state.gradientUnsetLight, state.gradientUnsetDark])
-        });
+            margin.addEventListener("mouseover", () => {
+                increaseGradient(button, balance, state, 1, [state.gradientUnsetLight, state.gradientUnsetDark])
+            });
 
-        margin.addEventListener("mouseleave", () => {
-            decreaseGradient(button, state, 50, [state.gradientUnsetLight, state.gradientUnsetDark])
-        })
-
-        grid.appendChild(margin);
-        margin.appendChild(button);
+            margin.addEventListener("mouseleave", () => {
+                decreaseGradient(button, state, 50, [state.gradientUnsetLight, state.gradientUnsetDark])
+            })
+            grid.appendChild(margin);
+            margin.appendChild(button);
+        } else {
+            let button = document.createElement("button");
+            button.classList.add("nodeButton");
+            let margin = document.createElement("div");
+            margin.classList.add("invisiblePadding", "p-1", "flex");
+            grid.appendChild(margin);
+            margin.appendChild(button);
+        }
     }
 }
 
@@ -230,13 +239,22 @@ function populateShop() {
         modifierUpgrade.textContent = item.modifier(item.level + 1);
 
         let upgrade = document.createElement("div");
-        upgrade.classList.add("absolute", "bottom-0", "right-0", "pr-0.5");
+        upgrade.classList.add("absolute", "bottom-0", "right-0", "px-0.5", "bg-cyan-100", "rounded-sm", "text-base/5");
         upgrade.textContent = item.level;
 
-        toolTip.appendChild(title);
-        toolTip.appendChild(rowItem);
-        toolTip.appendChild(rowClone);
-        
+        if (item.level == item.maxLevel) {
+            let maxTitle = document.createElement("div");
+            maxTitle.classList.add("w-7/8");
+            maxTitle.textContent = item.name + " " + "Maxed";
+            toolTip.appendChild(maxTitle);
+            shopButton.classList.add("border-green-500", "border-2");
+            shopContainer.appendChild(shopButton);
+        } else {
+            toolTip.appendChild(title);
+            toolTip.appendChild(rowItem);
+            toolTip.appendChild(rowClone);
+        }
+
         rowItem.appendChild(cost);
         rowItem.appendChild(costLabel);
         rowClone.appendChild(modifier);
@@ -268,13 +286,10 @@ function populateShop() {
                     maxTitle.classList.add("w-7/8");
                     maxTitle.textContent = item.name + " " + "Maxed";
                     toolTip.appendChild(maxTitle);
-                    shopButton.classList.add("border-green-500");
+                    shopButton.classList.add("border-green-500", "border-2");
                     shopContainer.appendChild(shopButton);
                 }
-                if (item == shopUpgrades.raritytier) {
-                    resetColorGrid();
-                    populateColorGrid();
-                }
+                item.onUpgrade();
             } else {
                 noBuyAnimation(shopButton);
             }
@@ -308,4 +323,29 @@ function buyAnimation(button) {
     setTimeout(() => {
         button.disabled = false
     }, 500)
+}
+
+function getSquareSelection(index) {
+    if (index < 1 || index > 4) {
+        throw new Error("Index must be between 1 and 4");
+    }
+    
+    const gridSize = 8;
+    const sizes = [2, 4, 6, 8]; // Corresponding square sizes for index 1-4
+    const size = sizes[index - 1];
+    
+    // Calculate the starting position for centering
+    const startRow = Math.floor((gridSize - size) / 2);
+    const startCol = Math.floor((gridSize - size) / 2);
+    
+    let selectedNumbers = [];
+    
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            let number = (startRow + r) * gridSize + (startCol + c) + 1;
+            selectedNumbers.push(number);
+        }
+    }
+    
+    return selectedNumbers;
 }
