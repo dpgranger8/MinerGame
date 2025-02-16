@@ -8,9 +8,12 @@ const rewards = {
 };
 
 let shopUpgrades = {
-    farmspeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: NaN, modifier: function(level) {return 0.5 + (level / 5);}, cost: function(level) {return (level + 5) ** 2;}, onUpgrade: function() {}},
-    raritytier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: 5, modifier: function(level) {return  level;}, cost: function(level) {return level == 0 ? 1 : (100 * level);}, onUpgrade: function() {resetColorGrid(); populateColorGrid();}},
-    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: 3, modifier: function(level) {return  level;}, cost: function(level) {return (100 * (level + 1));}, onUpgrade: function() {resetColorGrid(); populateColorGrid();}}
+    farmSpeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: NaN, modifier: function(level) {return 0.5 + (level / 5);}, cost: function(level) {return (level + 5) ** 2;}, onUpgrade: function() {}},
+    rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: 5, modifier: function(level) {return  level;}, cost: function(level) {return level == 0 ? 1 : (100 * level);}, onUpgrade: function() {resetColorGrid(); populateColorGrid();}},
+    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: 3, modifier: function(level) {return  level;}, cost: function(level) {return (100 * (level + 1));}, onUpgrade: function() {resetColorGrid(); populateColorGrid();}},
+    replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: NaN, modifier: function(level) {return level;}, cost: function(level) {return (level + 1) ** 2;}, onUpgrade: function() {resetColorGrid(); populateColorGrid();}},
+    farmer: {name: "Add Farmer", image: "src/images/farmer.png", level: 0, maxLevel: NaN, modifier: function(level) {return level;}, cost: function(level) {return (level + 1) ** 2;}, onUpgrade: function() {}},
+    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: NaN, modifier: function(level) {return level;}, cost: function(level) {return (level + 1) ** 2;}, onUpgrade: function() {}}
 };
 
 (function() {
@@ -76,7 +79,7 @@ function increaseGradient(button, balance, state, ms, [gradientUnset1, gradientU
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
-        state.endAngle += shopUpgrades.farmspeed.modifier(shopUpgrades.farmspeed.level);
+        state.endAngle += shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
         button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
         if (state.endAngle >= 360) {
             state.endAngle = 0;
@@ -145,7 +148,7 @@ function populateRarities() {
 
     for (let key in rewards) {
         let item = rewards[key];
-        if (item.index <= shopUpgrades.raritytier.level) {
+        if (item.index <= shopUpgrades.rarityTier.level) {
             
             let listItem = document.createElement("div");
             listItem.classList.add("flex", "flex-row", "justify-between", "mb-2");
@@ -163,7 +166,7 @@ function populateRarities() {
 
             let chanceDiv = document.createElement("div");
             chanceDiv.classList.add("flex", "justify-center",  "self-center", "ml-3");
-            chanceDiv.textContent = item.chance[shopUpgrades.raritytier.level] + "%";
+            chanceDiv.textContent = item.chance[shopUpgrades.rarityTier.level] + "%";
 
             let rewardDiv = document.createElement("div");
             rewardDiv.classList.add("flex", "basis-1/3", "justify-end", "self-center", "ml-3");
@@ -189,7 +192,7 @@ function chooseRarity() {
     let threshold = 0;
     
     for (let key of Object.keys(rewards)) {
-        threshold += rewards[key].chance[shopUpgrades.raritytier.level] * 100;
+        threshold += rewards[key].chance[shopUpgrades.rarityTier.level] * 100;
         if (num <= threshold) {
             return rewards[key];
         }
@@ -277,7 +280,7 @@ function populateShop() {
                 title.textContent = item.name + " " + (item.level + 1);
                 bonusToast(balance, cost, "-", true);
                 buyAnimation(shopButton);
-                if (item == shopUpgrades.raritytier) {
+                if (item == shopUpgrades.rarityTier) {
                     populateRarities();
                 }
                 if (item.level == item.maxLevel) {
@@ -293,7 +296,6 @@ function populateShop() {
             } else {
                 noBuyAnimation(shopButton);
             }
-
         });
     }
 }
