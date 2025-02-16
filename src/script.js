@@ -18,11 +18,16 @@ let shopUpgrades = {
     populateColorGrid();
 })();
 
+function resetColorGrid() {
+    const grid = document.getElementById("minegrid");
+    grid.innerHTML = "";
+}
+
 function populateColorGrid() {
     const grid = document.getElementById("minegrid");
     const increaseHitbox = document.getElementById("extraPadding");
     const balance = document.getElementById("display");
-    
+
     for (let i = 0; i < 64; i++) {
 
         let color1Choices = ["moccasin", "navajowhite"]
@@ -265,6 +270,10 @@ function populateShop() {
                     toolTip.appendChild(maxTitle);
                     shopButton.classList.add("border-green-500");
                     shopContainer.appendChild(shopButton);
+                }
+                if (item == shopUpgrades.raritytier) {
+                    resetColorGrid();
+                    populateColorGrid();
                 }
             } else {
                 noBuyAnimation(shopButton);
