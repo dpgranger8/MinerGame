@@ -1,31 +1,38 @@
 const rewards = {
-    common: {rarity: "common", colors: ["aquamarine", "lime"], chance: 72, bonus: 1},
-    uncommon: {rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: 20, bonus: 5},
-    rare: {rarity: "rare", colors: ["pink", "hotpink"], chance: 6, bonus: 25},
-    epic: {rarity: "epic", colors: ["lightsalmon", "darkorange"], chance: 1.5, bonus: 100},
-    legendary: {rarity: "legendary",  colors: ["yellow", "gold"], chance: 0.49, bonus: 500},
-    mythic: {rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: 0.01, bonus: 10000}
+    common: {index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1},
+    uncommon: {index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5},
+    rare: {index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25},
+    epic: {index: 3, rarity: "epic", colors: ["lightsalmon", "darkorange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100},
+    legendary: {index: 4, rarity: "legendary",  colors: ["yellow", "gold"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500},
+    mythic: {index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000}
 };
 
 let shopUpgrades = {
-    farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0, modifier: function(level) {return 0.5 + (level / 5);}, cost: function(level) {return (level + 3) ** 2;}}
+    farmspeed: { name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: NaN, modifier: function(level) {return 0.5 + (level / 10);}, cost: function(level) {return (level + 5) ** 2;}},
+    raritytier: { name: "Add Color Rarity", image: "src/images/gem-stone.png", level: 0, maxLevel: 5, modifier: function(level) {return  level;}, cost: function(level) {return (1 * 10 ** level);}}
 };
 
 (function() {
+    populateRarities();
+    populateShop();
+    populateColorGrid();
+})();
+
+function populateColorGrid() {
     const grid = document.getElementById("minegrid");
     const increaseHitbox = document.getElementById("extraPadding");
     const balance = document.getElementById("display");
-
-    populateRewards();
-    populateShop();
-
+    
     for (let i = 0; i < 64; i++) {
+
+        let color1Choices = ["moccasin", "navajowhite"]
+        let color2Choices = ["burlywood", "sandybrown"]
 
         let state = {
             endAngle: 0,
-            interval: null,
-            gradientUnsetLight: "lemonchiffon",
-            gradientUnsetDark: "moccasin",
+            interval: undefined,
+            gradientUnsetLight: color1Choices[getRandomInt(0, 1)],
+            gradientUnsetDark: color2Choices[getRandomInt(0, 1)],
             currentItem: chooseRarity()
         };
 
@@ -48,7 +55,7 @@ let shopUpgrades = {
         grid.appendChild(margin);
         margin.appendChild(button);
     }
-})();
+}
 
 
 function increaseGradient(button, balance, state, ms, [gradientUnset1, gradientUnset2]) {
@@ -107,44 +114,59 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function populateRewards() {
+function populateRarities() {
     const rewardsContainer = document.getElementById("rewards");
+    rewardsContainer.innerHTML = "";
+
+    let rewardsTitles = document.createElement("div");
+    rewardsTitles.classList.add("flex", "justify-between", "mb-5");
+    rewardsContainer.appendChild(rewardsTitles)
+    let titles = ["Rarity", "Chance", "Bonus"];
+    let title = document.createElement("span");
+    for (i = 0; i < 3; i++) {
+        let node = title.cloneNode(true);
+        node.textContent = titles[i];
+        rewardsTitles.appendChild(node);
+    }
 
     for (let key in rewards) {
         let item = rewards[key];
-        let listItem = document.createElement("div");
-        listItem.classList.add("flex", "flex-row", "justify-between", "mb-2");
+        if (item.index <= shopUpgrades.raritytier.level) {
+            
+            let listItem = document.createElement("div");
+            listItem.classList.add("flex", "flex-row", "justify-between", "mb-2");
 
-        let itemGroupDiv = document.createElement("div");
-        itemGroupDiv.classList.add("flex", "basis-1/3", "self-center");
+            let itemGroupDiv = document.createElement("div");
+            itemGroupDiv.classList.add("flex", "basis-1/3", "self-center");
 
-        let nodeButton = document.createElement("button");
-        nodeButton.classList.add("nodeButton");
-        nodeButton.style.background = `linear-gradient(${item.colors[0]}, ${item.colors[1]}`;
+            let nodeButton = document.createElement("button");
+            nodeButton.classList.add("nodeButton");
+            nodeButton.style.background = `linear-gradient(${item.colors[0]}, ${item.colors[1]}`;
 
-        let labelDiv = document.createElement("div");
-        labelDiv.classList.add("flex", "self-center", "ml-3");
-        labelDiv.textContent = capitalize(item.rarity);
+            let labelDiv = document.createElement("div");
+            labelDiv.classList.add("flex", "self-center", "ml-3");
+            labelDiv.textContent = capitalize(item.rarity);
 
-        let chanceDiv = document.createElement("div");
-        chanceDiv.classList.add("flex", "justify-center",  "self-center", "ml-3");
-        chanceDiv.textContent = item.chance + "%";
+            let chanceDiv = document.createElement("div");
+            chanceDiv.classList.add("flex", "justify-center",  "self-center", "ml-3");
+            chanceDiv.textContent = item.chance[shopUpgrades.raritytier.level] + "%";
 
-        let rewardDiv = document.createElement("div");
-        rewardDiv.classList.add("flex", "basis-1/3", "justify-end", "self-center", "ml-3");
-        rewardDiv.textContent = item.bonus;
+            let rewardDiv = document.createElement("div");
+            rewardDiv.classList.add("flex", "basis-1/3", "justify-end", "self-center", "ml-3");
+            rewardDiv.textContent = item.bonus;
 
-        let spacer = document.createElement("div");
-        spacer.classList.add("flex-grow");
+            let spacer = document.createElement("div");
+            spacer.classList.add("flex-grow");
 
-        rewardsContainer.appendChild(listItem);
+            rewardsContainer.appendChild(listItem);
 
-        itemGroupDiv.appendChild(nodeButton);
-        itemGroupDiv.appendChild(labelDiv);
+            itemGroupDiv.appendChild(nodeButton);
+            itemGroupDiv.appendChild(labelDiv);
 
-        listItem.appendChild(itemGroupDiv);
-        listItem.appendChild(chanceDiv);
-        listItem.appendChild(rewardDiv)
+            listItem.appendChild(itemGroupDiv);
+            listItem.appendChild(chanceDiv);
+            listItem.appendChild(rewardDiv);
+        }
     }
 }
 
@@ -153,7 +175,7 @@ function chooseRarity() {
     let threshold = 0;
     
     for (let key of Object.keys(rewards)) {
-        threshold += rewards[key].chance * 100;
+        threshold += rewards[key].chance[shopUpgrades.raritytier.level] * 100;
         if (num <= threshold) {
             return rewards[key];
         }
@@ -202,6 +224,10 @@ function populateShop() {
         modifierUpgrade.classList.add("flex", "text-blue-500")
         modifierUpgrade.textContent = item.modifier(item.level + 1);
 
+        let upgrade = document.createElement("div");
+        upgrade.classList.add("absolute", "bottom-0", "right-0", "pr-0.5");
+        upgrade.textContent = item.level;
+
         toolTip.appendChild(title);
         toolTip.appendChild(rowItem);
         toolTip.appendChild(rowClone);
@@ -212,16 +238,12 @@ function populateShop() {
         rowClone.appendChild(arrows);
         rowClone.appendChild(modifierUpgrade);
 
-        let upgrade = document.createElement("div");
-        upgrade.classList.add("absolute", "bottom-0", "right-0", "pr-0.5");
-        upgrade.textContent = item.level;
-
         shopButton.appendChild(toolTip);
         shopButton.appendChild(upgrade);
 
         shopButton.addEventListener("click", () => {
             let cost = item.cost(item.level)
-            if (balance.textContent >= cost) {
+            if ((balance.textContent >= cost) && !(item.level == item.maxLevel)) {
                 shopButton.disabled = true
                 item.level += 1;
                 balance.textContent -= cost;
@@ -232,9 +254,22 @@ function populateShop() {
                 title.textContent = item.name + " " + (item.level + 1);
                 bonusToast(balance, cost, "-", true);
                 buyAnimation(shopButton);
+                if (item == shopUpgrades.raritytier) {
+                    populateRarities();
+                }
+                if (item.level == item.maxLevel) {
+                    toolTip.innerHTML = "";
+                    let maxTitle = document.createElement("div");
+                    maxTitle.classList.add("w-7/8");
+                    maxTitle.textContent = item.name + " " + "Maxed";
+                    toolTip.appendChild(maxTitle);
+                    shopButton.classList.add("border-green-500");
+                    shopContainer.appendChild(shopButton);
+                }
             } else {
                 noBuyAnimation(shopButton);
             }
+
         });
     }
 }
