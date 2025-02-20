@@ -2327,6 +2327,9 @@ button.nodeButton {
 .extraPadding:hover {
   border: 1px solid white;
 }
+.hover {
+  border: 1px solid white;
+}
 .invisiblePadding {
   display: flex;
   border: 1px solid transparent;
