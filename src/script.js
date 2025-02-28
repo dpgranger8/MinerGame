@@ -1,4 +1,20 @@
-import * as utils from "./utils.js"
+const grid = document.getElementById("minegrid");
+const increaseHitbox = document.getElementById("extraPadding");
+const display = document.getElementById("display");
+const rewardsContainer = document.getElementById("rewards");
+const shopContainer = document.getElementById("shopContainer");
+
+let _balance = 0;
+Object.defineProperty(window, "balance", {
+    get: () => {
+        return _balance;
+    },
+    set: (newValue) => {
+        _balance = newValue;
+        display.textContent = _balance;
+        storeData();
+    }
+});
 
 let mouseState = {
     whichTile: 0,
@@ -17,25 +33,28 @@ const rewards = {
 
 let shopUpgrades = {
     farmSpeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: NaN, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 2;}, onUpgrade: () => {}},
-    rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: 5, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (100 * level);}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
+    rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: 5, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: 3, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     farmer: {name: "Add Farmer", image: "src/images/farmer.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {}},
     hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: (level) => {
         switch (level) {
             case 1:
+                mouseState.farmAreaOffsets = [+1];
+            case 2:
                 mouseState.farmAreaOffsets = [-1, +1];
                 break;
-            case 2:
+            case 3:
                 mouseState.farmAreaOffsets.push(-8, +8);
                 break;
-            case 3:
+            case 4:
                 mouseState.farmAreaOffsets.push(-9, -7, +9, +7);
         }
     }}
 };
 
 (() => {
+    retrieveData();
     populateRarities();
     populateShop();
     populateColorGrid();
@@ -47,20 +66,16 @@ function resetColorGrid() {
 }
 
 function populateColorGrid() {
-    const grid = document.getElementById("minegrid");
-    const increaseHitbox = document.getElementById("extraPadding");
-    const balance = document.getElementById("display");
 
     for (let i = 1; i <= 64; i++) {
-
         let color1Choices = ["moccasin", "navajowhite"]
         let color2Choices = ["burlywood", "sandybrown"]
 
         let state = {
             endAngle: 0,
             interval: undefined,
-            gradientUnsetLight: color1Choices[utils.getRandomInt(0, 1)],
-            gradientUnsetDark: color2Choices[utils.getRandomInt(0, 1)],
+            gradientUnsetLight: color1Choices[getRandomInt(0, 1)],
+            gradientUnsetDark: color2Choices[getRandomInt(0, 1)],
             currentItem: chooseRarity()
         };
 
@@ -74,15 +89,15 @@ function populateColorGrid() {
             button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark}`;
 
             margin.addEventListener("mouseover", () => {
-                increaseGradient(button, balance, state, 1, [state.gradientUnsetLight, state.gradientUnsetDark])
+                increaseGradient(button, state, 1)
                 mouseState.whichTile = i;
-                hoverOtherTiles();
+                hoverOtherTiles(button, true, state);
             });
 
             margin.addEventListener("mouseleave", () => {
-                decreaseGradient(button, state, 50, [state.gradientUnsetLight, state.gradientUnsetDark])
-                mouseState.whichTile = 0;
-                unHoverOtherTiles();
+                decreaseGradient(button, state, 50)
+                mouseState.whichTile = i;
+                hoverOtherTiles(button, false, state);
             })
             grid.appendChild(margin);
             margin.appendChild(button);
@@ -97,57 +112,59 @@ function populateColorGrid() {
     }
 }
 
-function hoverOtherTiles() {
+function hoverOtherTiles(button, add, state) {
     for (let i = 0; i < mouseState.farmAreaOffsets.length; i++) {
         let whichTile = mouseState.whichTile + mouseState.farmAreaOffsets[i];
         let tileButton = document.getElementById(whichTile);
-        tileButton.classList.add("hover");
-    }
-}
-function unHoverOtherTiles() {
-    for (let i = 0; i < mouseState.farmAreaOffsets.length; i++) {
-        let whichTile = mouseState.whichTile + mouseState.farmAreaOffsets[i];
-        let tileButton = document.getElementById(whichTile);
-        tileButton.classList.remove("hover");
+        if (add && (tileButton != null)) {
+            tileButton.classList.add("hover");
+            increaseGradient(button, state, 1);
+        } else {
+            tileButton.classList.remove("hover");
+        }
     }
 }
 
-function increaseGradient(button, balance, state, ms, [gradientUnset1, gradientUnset2]) {
+/**
+ * @param {HTMLElement} button to apply the conic gradient to
+ * @param {Object} state
+ * @param {Int} ms
+ */
+
+function increaseGradient(button, state, ms) {
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
         state.endAngle += shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
-        button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
+        button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
         if (state.endAngle >= 360) {
             state.endAngle = 0;
-            let currentValue = parseInt(balance.textContent);
-            balance.textContent = currentValue + state.currentItem.bonus;
-            bonusToast(balance, state.currentItem.bonus, "+", true);
+            window.balance += state.currentItem.bonus;
+            bonusToast(display, state.currentItem.bonus, "+", true);
             bonusToast(button, state.currentItem.bonus, "+", false);
             state.currentItem = chooseRarity();
         }
     }, ms);
 }
 
-function decreaseGradient(button, state, ms, [gradientUnset1, gradientUnset2]) {
+function decreaseGradient(button, state, ms) {
     if (state.interval) {
         clearInterval(state.interval);
         state.interval = undefined;
         state.interval = setInterval(() => {
             state.endAngle -= 1;
-            button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${gradientUnset1} ${state.endAngle}deg, ${gradientUnset2} 360deg)`;
+            button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
             if (state.endAngle <= 0) {
                 state.endAngle = 0;
                 clearInterval(state.interval)
-                state.interval = undefined
-                button.style.background = `linear-gradient(${gradientUnset1}, ${gradientUnset2})`;
+                state.interval = undefined;
+                button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark})`;
             }
         }, ms)
     }
 }
 
 function populateRarities() {
-    const rewardsContainer = document.getElementById("rewards");
     rewardsContainer.innerHTML = "";
 
     let rewardsTitles = document.createElement("div");
@@ -177,7 +194,7 @@ function populateRarities() {
 
             let labelDiv = document.createElement("div");
             labelDiv.classList.add("flex", "self-center", "ml-3");
-            labelDiv.textContent = utils.capitalize(item.rarity);
+            labelDiv.textContent = capitalize(item.rarity);
 
             let chanceDiv = document.createElement("div");
             chanceDiv.classList.add("flex", "justify-center",  "self-center", "ml-3");
@@ -203,9 +220,6 @@ function populateRarities() {
 }
 
 function populateShop() {
-    const shopContainer = document.getElementById("shopContainer");
-    const balance = document.getElementById("display");
-
     for (let key in shopUpgrades) {
         let item = shopUpgrades[key];
         let shopButton = document.createElement("button");
@@ -272,16 +286,16 @@ function populateShop() {
 
         shopButton.addEventListener("click", () => {
             let cost = item.cost(item.level)
-            if ((balance.textContent >= cost) && !(item.level == item.maxLevel)) {
+            if ((window.balance >= cost) && !(item.level == item.maxLevel)) {
                 shopButton.disabled = true
                 item.level += 1;
-                balance.textContent -= cost;
+                window.balance -= cost;
                 costLabel.textContent = item.cost(item.level);
                 modifier.textContent = item.modifier(item.level);
                 modifierUpgrade.textContent = item.modifier(item.level + 1);
                 upgrade.textContent = item.level;
                 title.textContent = item.name + " " + (item.level + 1);
-                bonusToast(balance, cost, "-", true);
+                bonusToast(display, cost, "-", true);
                 buyAnimation(shopButton);
                 if (item == shopUpgrades.rarityTier) {
                     populateRarities();
@@ -304,7 +318,7 @@ function populateShop() {
 }
 
 function chooseRarity() {
-    let num = utils.getRandomInt(1, 10000);
+    let num = getRandomInt(1, 10000);
     let threshold = 0;
     
     for (let key of Object.keys(rewards)) {
@@ -376,4 +390,39 @@ function getSquareSelection(index) {
     }
     
     return selectedNumbers;
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function capitalize(str) {
+    if (!str) {
+      return "";
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function storeData() {
+    let levels = [];
+    Object.entries(shopUpgrades).forEach(([key, upgrade]) => {
+        levels.push(upgrade.level);
+    });
+    localStorage.setItem("levels", JSON.stringify(levels));
+    localStorage.setItem("balance", window.balance)
+}
+
+function retrieveData() {
+    let storedBalance = localStorage.getItem("balance");
+    if (storedBalance == null) {
+        window.balance = 0;
+    } else {
+        let levels = JSON.parse(localStorage.getItem("levels"));
+        let counter = 0;
+        Object.entries(shopUpgrades).forEach(([key, upgrade]) => {
+            upgrade.level = levels[counter];
+            counter++;
+        });
+        window.balance = parseInt(storedBalance);
+    }
 }
