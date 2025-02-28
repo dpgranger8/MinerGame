@@ -4,6 +4,11 @@ const display = document.getElementById("display");
 const rewardsContainer = document.getElementById("rewards");
 const shopContainer = document.getElementById("shopContainer");
 
+let color1Choices = ["moccasin", "navajowhite"]
+let color2Choices = ["burlywood", "sandybrown"]
+
+let tileStates = {};
+
 let _balance = 0;
 Object.defineProperty(window, "balance", {
     get: () => {
@@ -18,8 +23,7 @@ Object.defineProperty(window, "balance", {
 
 let mouseState = {
     whichTile: 0,
-    farmAreaOffsets: [],
-    farmAreaTiles: []
+    farmAreaOffsets: []
 };
 
 const rewards = {
@@ -37,7 +41,7 @@ let shopUpgrades = {
     expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: 3, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     farmer: {name: "Add Farmer", image: "src/images/farmer.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {}},
-    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: (level) => {
+    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return level == 0 ? 100 : (10 ** (level + 1));}, onUpgrade: (level) => {
         switch (level) {
             case 1:
                 mouseState.farmAreaOffsets = [+1];
@@ -45,10 +49,10 @@ let shopUpgrades = {
                 mouseState.farmAreaOffsets = [-1, +1];
                 break;
             case 3:
-                mouseState.farmAreaOffsets.push(-8, +8);
+                mouseState.farmAreaOffsets = [-1, +1, -8, +8];
                 break;
             case 4:
-                mouseState.farmAreaOffsets.push(-9, -7, +9, +7);
+                mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7];
         }
     }}
 };
@@ -68,10 +72,7 @@ function resetColorGrid() {
 function populateColorGrid() {
 
     for (let i = 1; i <= 64; i++) {
-        let color1Choices = ["moccasin", "navajowhite"]
-        let color2Choices = ["burlywood", "sandybrown"]
-
-        let state = {
+        tileStates[i] = {
             endAngle: 0,
             interval: undefined,
             gradientUnsetLight: color1Choices[getRandomInt(0, 1)],
@@ -82,22 +83,23 @@ function populateColorGrid() {
         if (getSquareSelection(shopUpgrades.expansion.level + 1).includes(i)) {
             let button = document.createElement("button");
             button.classList.add("nodeButton");
+            button.id = ("node"+i);
             let margin = document.createElement("div");
             margin.classList.add("extraPadding", "p-1", "flex");
-            margin.id = i;
+            margin.id = ("margin"+i);
 
-            button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark}`;
+            button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
             margin.addEventListener("mouseover", () => {
-                increaseGradient(button, state, 1)
+                increaseGradient(button, tileStates[i], 1)
                 mouseState.whichTile = i;
-                hoverOtherTiles(button, true, state);
+                hoverOtherTiles(true);
             });
 
             margin.addEventListener("mouseleave", () => {
-                decreaseGradient(button, state, 50)
+                decreaseGradient(button, tileStates[i], 50)
                 mouseState.whichTile = i;
-                hoverOtherTiles(button, false, state);
+                hoverOtherTiles(false);
             })
             grid.appendChild(margin);
             margin.appendChild(button);
@@ -112,15 +114,19 @@ function populateColorGrid() {
     }
 }
 
-function hoverOtherTiles(button, add, state) {
+function hoverOtherTiles(add) {
     for (let i = 0; i < mouseState.farmAreaOffsets.length; i++) {
         let whichTile = mouseState.whichTile + mouseState.farmAreaOffsets[i];
-        let tileButton = document.getElementById(whichTile);
-        if (add && (tileButton != null)) {
-            tileButton.classList.add("hover");
-            increaseGradient(button, state, 1);
-        } else {
-            tileButton.classList.remove("hover");
+        let tileButton = document.getElementById("margin" + whichTile);
+        let nodeButton = document.getElementById("node" + whichTile);
+        if (tileButton != null && tileStates[whichTile]) {
+            if (add) {
+                tileButton.classList.add("hover");
+                increaseGradient(nodeButton, tileStates[whichTile], 1);
+            } else {
+                tileButton.classList.remove("hover");
+                decreaseGradient(nodeButton, tileStates[whichTile], 50);
+            }
         }
     }
 }
@@ -248,7 +254,7 @@ function populateShop() {
         
         let costLabel = document.createElement("div");
         costLabel.classList.add("flex", "text-red-500")
-        costLabel.textContent = item.cost(item.level);
+        costLabel.textContent = item.cost(item.level).toLocaleString();
 
         let modifier = document.createElement("div");
         modifier.classList.add("flex");
@@ -331,7 +337,7 @@ function chooseRarity() {
 
 function bonusToast(button, bonus, plusOrMinus, upMore) {
     let toast = document.createElement("div");
-    toast.classList.add("bonusToast");
+    toast.classList.add("bonusToast", "bg-transparent");
     if (upMore) {
         toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
     }
@@ -424,5 +430,6 @@ function retrieveData() {
             counter++;
         });
         window.balance = parseInt(storedBalance);
+        shopUpgrades.hoverArea.onUpgrade(shopUpgrades.hoverArea.level);
     }
 }
