@@ -16,7 +16,7 @@ Object.defineProperty(window, "balance", {
     },
     set: (newValue) => {
         _balance = newValue;
-        display.textContent = _balance;
+        display.textContent = _balance.toLocaleString();
         storeData();
     }
 });
@@ -41,7 +41,7 @@ let shopUpgrades = {
     expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: 3, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     farmer: {name: "Add Farmer", image: "src/images/farmer.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {}},
-    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return level == 0 ? 100 : (10 ** (level + 1));}, onUpgrade: (level) => {
+    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: NaN, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {
         switch (level) {
             case 1:
                 mouseState.farmAreaOffsets = [+1];
@@ -53,6 +53,9 @@ let shopUpgrades = {
                 break;
             case 4:
                 mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7];
+                break;
+            case 5:
+                mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16];
         }
     }}
 };
@@ -70,7 +73,6 @@ function resetColorGrid() {
 }
 
 function populateColorGrid() {
-
     for (let i = 1; i <= 64; i++) {
         tileStates[i] = {
             endAngle: 0,
@@ -116,16 +118,29 @@ function populateColorGrid() {
 
 function hoverOtherTiles(add) {
     for (let i = 0; i < mouseState.farmAreaOffsets.length; i++) {
-        let whichTile = mouseState.whichTile + mouseState.farmAreaOffsets[i];
-        let tileButton = document.getElementById("margin" + whichTile);
-        let nodeButton = document.getElementById("node" + whichTile);
-        if (tileButton != null && tileStates[whichTile]) {
+        let offset = mouseState.farmAreaOffsets[i];
+        let targetTile = mouseState.whichTile + offset;
+
+        let whichColumnTheOffsetIsOn = (((offset % 8) + 8) % 8)
+
+        let isFirstColumn = (mouseState.whichTile % 8 == 1) && (whichColumnTheOffsetIsOn > 5)
+        let isSecondColumn = (mouseState.whichTile % 8 == 2) && (whichColumnTheOffsetIsOn === 6)
+        let isSecondToLastColumn = (mouseState.whichTile % 8 == 7) && (whichColumnTheOffsetIsOn === 2)
+        let isLastColumn = (mouseState.whichTile % 8 == 0) && (whichColumnTheOffsetIsOn < 3 && whichColumnTheOffsetIsOn != 0)
+        
+        if (isFirstColumn || isSecondColumn || isSecondToLastColumn || isLastColumn) {
+            continue;
+        }
+
+        let tileButton = document.getElementById("margin" + targetTile);
+        let nodeButton = document.getElementById("node" + targetTile);
+        if (tileButton != null && tileStates[targetTile]) {
             if (add) {
                 tileButton.classList.add("hover");
-                increaseGradient(nodeButton, tileStates[whichTile], 1);
+                increaseGradient(nodeButton, tileStates[targetTile], 1);
             } else {
                 tileButton.classList.remove("hover");
-                decreaseGradient(nodeButton, tileStates[whichTile], 50);
+                decreaseGradient(nodeButton, tileStates[targetTile], 50);
             }
         }
     }
@@ -226,8 +241,7 @@ function populateRarities() {
 }
 
 function populateShop() {
-    for (let key in shopUpgrades) {
-        let item = shopUpgrades[key];
+    Object.entries(shopUpgrades).forEach(([key, item]) => {
         let shopButton = document.createElement("button");
         shopButton.style.backgroundImage = `url(${item.image})`;
         shopButton.classList.add("shopButton", "relative", "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
@@ -320,7 +334,7 @@ function populateShop() {
                 noBuyAnimation(shopButton);
             }
         });
-    }
+    });
 }
 
 function chooseRarity() {
@@ -337,7 +351,7 @@ function chooseRarity() {
 
 function bonusToast(button, bonus, plusOrMinus, upMore) {
     let toast = document.createElement("div");
-    toast.classList.add("bonusToast", "bg-transparent");
+    toast.classList.add("bonusToast");
     if (upMore) {
         toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
     }
@@ -421,15 +435,17 @@ function storeData() {
 function retrieveData() {
     let storedBalance = localStorage.getItem("balance");
     if (storedBalance == null) {
-        window.balance = 0;
+        window.balance = 100000000;
     } else {
         let levels = JSON.parse(localStorage.getItem("levels"));
         let counter = 0;
         Object.entries(shopUpgrades).forEach(([key, upgrade]) => {
             upgrade.level = levels[counter];
+            if (upgrade.name === "Farm Area") {
+                shopUpgrades.hoverArea.onUpgrade(upgrade.level);
+            }
             counter++;
         });
         window.balance = parseInt(storedBalance);
-        shopUpgrades.hoverArea.onUpgrade(shopUpgrades.hoverArea.level);
     }
 }
