@@ -102,6 +102,9 @@ function populateColorGrid() {
         };
 
         if (getSquareSelection(shopUpgrades.expansion.level + 1).includes(i)) {
+            let nodeContainer = document.createElement("div");
+            nodeContainer.classList.add("nodeContainer");
+            nodeContainer.id = ("container"+i);
             let button = document.createElement("button");
             button.classList.add("nodeButton");
             button.id = ("node"+i);
@@ -118,17 +121,18 @@ function populateColorGrid() {
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
             margin.addEventListener("mouseover", () => {
-                increaseGradient(button, tileStates[i], 1)
+                increaseGradient(i, 1)
                 mouseState.whichTile = i;
                 hoverOtherTiles(true);
             });
 
             margin.addEventListener("mouseleave", () => {
-                decreaseGradient(button, tileStates[i], 50)
+                decreaseGradient(i, 50)
                 mouseState.whichTile = i;
                 hoverOtherTiles(false);
             })
-            grid.appendChild(margin);
+            grid.appendChild(nodeContainer);
+            nodeContainer.appendChild(margin);
             margin.appendChild(button);
         } else {
             let button = document.createElement("button");
@@ -143,8 +147,7 @@ function populateColorGrid() {
 
 function addAutoFarmer(element, index) {
     element.classList.add("autoFarmer");
-    let nodeButton = document.getElementById("node"+index);
-    increaseGradient(nodeButton, tileStates[index], 1);
+    increaseGradient(index, 1);
 }
 
 function hoverOtherTiles(add) {
@@ -164,26 +167,28 @@ function hoverOtherTiles(add) {
         }
 
         let tileButton = document.getElementById("margin" + targetTile);
-        let nodeButton = document.getElementById("node" + targetTile);
         if (tileButton != null && tileStates[targetTile]) {
             if (add) {
                 tileButton.classList.add("hover");
-                increaseGradient(nodeButton, tileStates[targetTile], 1);
+                increaseGradient(targetTile, 1);
             } else {
                 tileButton.classList.remove("hover");
-                decreaseGradient(nodeButton, tileStates[targetTile], 50);
+                decreaseGradient(targetTile, 50);
             }
         }
     }
 }
 
 /**
- * @param {HTMLElement} button to apply the conic gradient to
- * @param {Object} state
- * @param {Int} ms
+ * @param {Int} index of grid element to apply styles to
+ * @param {Object} button state
+ * @param {Int} ms per interval
  */
 
-function increaseGradient(button, state, ms) {
+function increaseGradient(index, ms) {
+    let button = document.getElementById("node"+index);
+    let container = document.getElementById("container"+index);
+    let state = tileStates[index];
     clearInterval(state.interval)
     state.interval = undefined
     state.interval = setInterval(() => {
@@ -193,13 +198,16 @@ function increaseGradient(button, state, ms) {
             state.endAngle = 0;
             window.balance += state.currentItem.bonus;
             bonusToast(display, state.currentItem.bonus, "+", true);
-            bonusToast(button, state.currentItem.bonus, "+", false);
+            bonusToast(container, state.currentItem.bonus, "+", false);
             state.currentItem = chooseRarity();
         }
     }, ms);
 }
 
-function decreaseGradient(button, state, ms) {
+function decreaseGradient(index, ms) {
+    let button = document.getElementById("node"+index);
+    let container = document.getElementById("container"+index);
+    let state = tileStates[index];
     if (state.interval) {
         clearInterval(state.interval);
         state.interval = undefined;
@@ -384,10 +392,11 @@ function chooseRarity() {
     }
 }
 
-function bonusToast(button, bonus, plusOrMinus, upMore) {
+function bonusToast(button, bonus, plusOrMinus, isDisplay) {
     let toast = document.createElement("div");
-    toast.classList.add("bonusToast");
-    if (upMore) {
+    let color = (plusOrMinus === "+") ? "text-[#0000ff]" : "text-[#ff0000]"
+    toast.classList.add("bonusToast", color, "translate-x-1.5");
+    if (isDisplay) {
         toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
     }
     toast.textContent = plusOrMinus + bonus;
