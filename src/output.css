@@ -937,20 +937,8 @@
     --tw-translate-x: calc(var(--spacing) * -1);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
-  .-translate-x-1\/2 {
-    --tw-translate-x: calc(calc(1/2 * 100%) * -1);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
-  .-translate-x-6 {
-    --tw-translate-x: calc(var(--spacing) * -6);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
   .-translate-y-6 {
     --tw-translate-y: calc(var(--spacing) * -6);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
-  .translate-x-1 {
-    --tw-translate-x: calc(var(--spacing) * 1);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
   .translate-x-1\.5 {
@@ -1860,20 +1848,11 @@
   .\[color\:red\]\/50\! {
     color: color-mix(in oklab, red 50%, transparent) !important;
   }
-  .text-\[\#000000\] {
-    color: #000000;
-  }
   .text-\[\#0000ff\] {
     color: #0000ff;
   }
-  .text-\[\#50d71e\] {
-    color: #50d71e;
-  }
   .text-\[\#ff0000\] {
     color: #ff0000;
-  }
-  .text-\[\#ff\] {
-    color: #ff;
   }
   .text-blue-500 {
     color: var(--color-blue-500);

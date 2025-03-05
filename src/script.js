@@ -26,7 +26,7 @@ let mouseState = {
     farmAreaOffsets: []
 };
 
-let autoFarmerTiles = []
+let autoFarmerTiles = [];
 
 const rewards = {
     common: {index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1},
@@ -40,7 +40,7 @@ const rewards = {
 let shopUpgrades = {
     farmSpeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 2;}, onUpgrade: () => {}},
     rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => {return 5}, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
-    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); populateColorGrid(); shopUpgrades.farmer.maxLevel(); resetShop(); populateShop();}},
+    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); populateColorGrid(); shopUpgrades.farmer.maxLevel();}},
     replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
     farmer: {name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {
         let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(item => !autoFarmerTiles.includes(item));
@@ -49,6 +49,7 @@ let shopUpgrades = {
         addAutoFarmer(marginToEdit, elementID);
         autoFarmerTiles.push(elementID);
         shopUpgrades.farmer.maxLevel();
+        storeData();
     }},
     hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {
         switch (level) {
@@ -112,12 +113,6 @@ function populateColorGrid() {
             margin.classList.add("extraPadding", "p-1", "flex");
             margin.id = ("margin"+i);
 
-            autoFarmerTiles.forEach((index) => {
-                if (index === i) {
-                    addAutoFarmer(margin, index);
-                }
-            });
-
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
             margin.addEventListener("mouseover", () => {
@@ -134,6 +129,12 @@ function populateColorGrid() {
             grid.appendChild(nodeContainer);
             nodeContainer.appendChild(margin);
             margin.appendChild(button);
+
+            autoFarmerTiles.forEach((index) => {
+                if (index === i) {
+                    addAutoFarmer(margin, index);
+                }
+            });
         } else {
             let button = document.createElement("button");
             button.classList.add("nodeButton");
@@ -350,27 +351,23 @@ function populateShop() {
         shopButton.addEventListener("click", () => {
             let cost = item.cost(item.level)
             if ((window.balance >= cost) && !(item.level == item.maxLevel())) {
-                shopButton.disabled = true
                 item.level += 1;
                 window.balance -= cost;
-                costLabel.textContent = item.cost(item.level);
+                costLabel.textContent = item.cost(item.level).toLocaleString();
                 modifier.textContent = item.modifier(item.level);
                 modifierUpgrade.textContent = item.modifier(item.level + 1);
                 upgrade.textContent = item.level;
                 title.textContent = item.name + " " + (item.level + 1);
                 bonusToast(display, cost, "-", true);
-                buyAnimation(shopButton);
                 if (item == shopUpgrades.rarityTier) {
                     populateRarities();
                 }
                 if (item.level == item.maxLevel()) {
-                    toolTip.innerHTML = "";
-                    let maxTitle = document.createElement("div");
-                    maxTitle.classList.add("w-7/8");
-                    maxTitle.textContent = item.name + " " + "Maxed";
-                    toolTip.appendChild(maxTitle);
-                    shopButton.classList.add("border-green-500", "border-2");
-                    shopContainer.appendChild(shopButton);
+                    resetShop();
+                    populateShop();
+                    buyAnimation(shopButton);
+                } else {
+                    buyAnimation(shopButton);
                 }
                 item.onUpgrade(item.level);
             } else {
@@ -399,7 +396,7 @@ function bonusToast(button, bonus, plusOrMinus, isDisplay) {
     if (isDisplay) {
         toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
     }
-    toast.textContent = plusOrMinus + bonus;
+    toast.textContent = plusOrMinus + parseInt(bonus).toLocaleString();
     button.appendChild(toast);
     setTimeout(() => toast.remove(), 500);
 }
@@ -426,9 +423,6 @@ function buyAnimation(button) {
     setTimeout(() => {
         button.style.transform = "scale(1)";
     }, 100);
-    setTimeout(() => {
-        button.disabled = false
-    }, 500)
 }
 
 function getSquareSelection(index) {
@@ -481,7 +475,9 @@ function storeData() {
         levels.push(upgrade.level);
     });
     localStorage.setItem("levels", JSON.stringify(levels));
-    localStorage.setItem("balance", window.balance)
+    localStorage.setItem("balance", window.balance);
+    console.log("Saving tiles:" + autoFarmerTiles);
+    localStorage.setItem("autoFarmers", JSON.stringify(autoFarmerTiles));
 }
 
 function retrieveData() {
@@ -489,7 +485,10 @@ function retrieveData() {
     if (storedBalance == null) {
         window.balance = 10000000000;
     } else {
+        // Any additional storage must come before the object.entries statement
         let levels = JSON.parse(localStorage.getItem("levels"));
+        let autoFarm = JSON.parse(localStorage.getItem("autoFarmers"));
+        autoFarmerTiles = autoFarm;
         let counter = 0;
         Object.entries(shopUpgrades).forEach(([key, upgrade]) => {
             upgrade.level = levels[counter];
@@ -500,4 +499,11 @@ function retrieveData() {
         });
         window.balance = parseInt(storedBalance);
     }
+}
+
+function debug() {
+    localStorage.removeItem("levels");
+    localStorage.removeItem("balance");
+    localStorage.removeItem("autoFarmers");
+    location.reload();
 }
