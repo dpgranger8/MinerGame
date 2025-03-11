@@ -51,7 +51,7 @@ let shopUpgrades = {
         shopUpgrades.farmer.maxLevel();
         storeData();
     }},
-    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {
+    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return 8}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {
         switch (level) {
             case 1:
                 mouseState.farmAreaOffsets = [+1];
@@ -116,13 +116,13 @@ function populateColorGrid() {
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
             margin.addEventListener("mouseover", () => {
-                increaseGradient(i, 1)
+                increaseGradient(i)
                 mouseState.whichTile = i;
                 hoverOtherTiles(true);
             });
 
             margin.addEventListener("mouseleave", () => {
-                decreaseGradient(i, 50)
+                decreaseGradient(i)
                 mouseState.whichTile = i;
                 hoverOtherTiles(false);
             })
@@ -148,7 +148,7 @@ function populateColorGrid() {
 
 function addAutoFarmer(element, index) {
     element.classList.add("autoFarmer");
-    increaseGradient(index, 1);
+    increaseGradient(index, true);
 }
 
 function hoverOtherTiles(add) {
@@ -171,57 +171,79 @@ function hoverOtherTiles(add) {
         if (tileButton != null && tileStates[targetTile]) {
             if (add) {
                 tileButton.classList.add("hover");
-                increaseGradient(targetTile, 1);
+                increaseGradient(targetTile);
             } else {
                 tileButton.classList.remove("hover");
-                decreaseGradient(targetTile, 50);
+                decreaseGradient(targetTile);
             }
         }
     }
 }
 
+function tilesBeingHovered() {
+    let tiles = [mouseState.whichTile];
+    mouseState.farmAreaOffsets.forEach((element) => {
+        tiles.push(element + mouseState.whichTile);
+    })
+    return tiles;
+}
+
 /**
  * @param {Int} index of grid element to apply styles to
- * @param {Object} button state
- * @param {Int} ms per interval
+ * @param {Boolean} whether the request to increase gradient is coming from the auto farmer function or not
  */
 
-function increaseGradient(index, ms) {
-    let button = document.getElementById("node"+index);
-    let container = document.getElementById("container"+index);
+function increaseGradient(index, fromAutoFarmer = false) {
     let state = tileStates[index];
-    clearInterval(state.interval)
-    state.interval = undefined
+    clearInterval(state.interval);
+    state.interval = undefined;
     state.interval = setInterval(() => {
-        state.endAngle += shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
-        button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
-        if (state.endAngle >= 360) {
-            state.endAngle = 0;
-            window.balance += state.currentItem.bonus;
-            bonusToast(display, state.currentItem.bonus, "+", true);
-            bonusToast(container, state.currentItem.bonus, "+", false);
-            state.currentItem = chooseRarity();
-        }
-    }, ms);
+        let shouldDoubleSpeed = (autoFarmerTiles.includes(index) && !fromAutoFarmer)
+        state.endAngle += (shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) * (shouldDoubleSpeed ? 2 : 1));
+        doIncreaseAction(index);
+    }, 1);
 }
 
 function decreaseGradient(index, ms) {
-    let button = document.getElementById("node"+index);
-    let container = document.getElementById("container"+index);
     let state = tileStates[index];
     if (state.interval) {
         clearInterval(state.interval);
         state.interval = undefined;
         state.interval = setInterval(() => {
-            state.endAngle -= 1;
-            button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
-            if (state.endAngle <= 0) {
-                state.endAngle = 0;
-                clearInterval(state.interval)
-                state.interval = undefined;
-                button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark})`;
+            if (autoFarmerTiles.includes(index)) {
+                state.endAngle += shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);;
+                doIncreaseAction(index);
+            } else {
+                state.endAngle -= .1;
+                doDecreaseAction(index);
             }
-        }, ms)
+        }, 1)
+    }
+}
+
+function doDecreaseAction(index) {
+    let button = document.getElementById("node"+index);
+    let state = tileStates[index];
+    button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
+    if (state.endAngle <= 0) {
+        state.endAngle = 0;
+        clearInterval(state.interval)
+        state.interval = undefined;
+        button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark})`;
+    }
+}
+
+function doIncreaseAction(index) {
+    let container = document.getElementById("container"+index);
+    let button = document.getElementById("node"+index);
+    let state = tileStates[index];
+    button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
+    if (state.endAngle >= 360) {
+        state.endAngle = 0;
+        window.balance += state.currentItem.bonus;
+        bonusToast(display, state.currentItem.bonus, "+", true);
+        bonusToast(container, state.currentItem.bonus, "+", false);
+        state.currentItem = chooseRarity();
     }
 }
 
@@ -476,7 +498,6 @@ function storeData() {
     });
     localStorage.setItem("levels", JSON.stringify(levels));
     localStorage.setItem("balance", window.balance);
-    console.log("Saving tiles:" + autoFarmerTiles);
     localStorage.setItem("autoFarmers", JSON.stringify(autoFarmerTiles));
 }
 
@@ -485,7 +506,7 @@ function retrieveData() {
     if (storedBalance == null) {
         window.balance = 10000000000;
     } else {
-        // Any additional storage must come before the object.entries statement
+        // Any additional storage retrieval must come before the object.entries statement
         let levels = JSON.parse(localStorage.getItem("levels"));
         let autoFarm = JSON.parse(localStorage.getItem("autoFarmers"));
         autoFarmerTiles = autoFarm;
