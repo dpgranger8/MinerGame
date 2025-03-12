@@ -5,8 +5,8 @@ const displayContainer = document.getElementById("displayContainer");
 const rewardsContainer = document.getElementById("rewards");
 const shopContainer = document.getElementById("shopContainer");
 
-let color1Choices = ["moccasin", "navajowhite"]
-let color2Choices = ["burlywood", "sandybrown"]
+let color1Choices = ["moccasin", "navajowhite"];
+let color2Choices = ["burlywood", "sandybrown"];
 
 let tileStates = {};
 
@@ -33,13 +33,13 @@ const rewards = {
     common: {index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]"},
     uncommon: {index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5, toastColor: "text-[#0000ff]"},
     rare: {index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25, toastColor: "text-[#ff1493]"},
-    epic: {index: 3, rarity: "epic", colors: ["gold", "darkorange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100, toastColor: "text-[#ff8c00]"},
-    legendary: {index: 4, rarity: "legendary",  colors: ["tomato", "crimson"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500, toastColor: "text-[#ff0000]"},
+    epic: {index: 3, rarity: "epic", colors: ["gold", "orange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100, toastColor: "text-[#cc5500]"},
+    legendary: {index: 4, rarity: "legendary",  colors: ["lightsalmon", "orangered"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500, toastColor: "text-[#ff0000]"},
     mythic: {index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000, toastColor: "text-[#4b0082]"}
 };
 
 let shopUpgrades = {
-    farmSpeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 2;}, onUpgrade: () => {}},
+    farmSpeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 3;}, onUpgrade: () => {}},
     rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => {return 5}, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid();}},
     expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); shopUpgrades.farmer.maxLevel();}},
     replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid();}},
@@ -52,6 +52,8 @@ let shopUpgrades = {
         shopUpgrades.farmer.maxLevel();
         storeData();
     }},
+    autoFarmerSpeed: {name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return Number((0.1 + (level / 10)).toFixed(1));}, cost: (level) => {return (level + 1) ** 4;}, onUpgrade: () => {}},
+    multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return Number((0.1 + (level / 10)).toFixed(1));}, cost: (level) => {return (level + 1) ** 4;}, onUpgrade: () => {}},
     hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return 8}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {
         switch (level) {
             case 1:
@@ -208,8 +210,16 @@ function startAngleIncrease(index, fromAutoFarmer = false) {
     clearInterval(state.interval);
     state.interval = undefined;
     state.interval = setInterval(() => {
-        let shouldDoubleSpeed = (autoFarmerTiles.includes(index) && !fromAutoFarmer)
-        state.endAngle += (shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) * (shouldDoubleSpeed ? 2 : 1));
+        let shouldDoubleFarm = (autoFarmerTiles.includes(index) && !fromAutoFarmer);
+        if (shouldDoubleFarm) {
+            state.endAngle += shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level)
+                            + shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
+                              
+        } else {
+            state.endAngle += fromAutoFarmer 
+                ? shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level) 
+                : shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
+        }
         doIncreaseAction(state, index);
     }, 1);
 }
@@ -226,7 +236,7 @@ function startAngleDecrease(index) {
         state.interval = undefined;
         state.interval = setInterval(() => {
             if (autoFarmerTiles.includes(index)) {
-                state.endAngle += shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);;
+                state.endAngle += shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level);
                 doIncreaseAction(state, index);
             } else {
                 state.endAngle -= .1;
@@ -436,20 +446,21 @@ function bonusToast(element, value, isBonus, isDisplay, color) {
     // I am so sorry to anyone who has to read this
     let toast = document.createElement("div");
     toast.textContent = (isBonus ? "+" : "-") + parseInt(value).toLocaleString();
-    let translateStrings = ["-translate-x-5", "-translate-x-4", "-translate-x-3", "-translate-x-2", "-translate-x-1", "translate-x-0", "translate-x-1", "translate-x-2", "translate-x-3", "translate-x-4", "translate-x-5"]
+    let translateXStrings = ["-translate-x-7", "-translate-x-6", "-translate-x-5", "-translate-x-4", "-translate-x-3", "-translate-x-2", "-translate-x-1", "translate-x-0", "translate-x-1", "translate-x-2", "translate-x-3", "translate-x-4", "translate-x-5", "translate-x-6", "translate-x-7"];
+    let translateYStrings = ["-translate-y-8", "-translate-y-7", "-translate-y-6", "-translate-y-5", "-translate-y-4"]
     let selectedColor = isBonus ? color : "text-[#ff0000]";
     let isBonusOrMinus = isBonus ? "bonusToast" : "minusToast";
     toast.classList.add(isBonusOrMinus, selectedColor);
     if (isDisplay) {
         if (isBonus) {
-            toast.classList.add("transform", "-translate-y-6", getRandomElement(translateStrings));
+            toast.classList.add("transform", getRandomElement(translateYStrings), getRandomElement(translateXStrings));
             setTimeout(() => toast.remove(), getRandomInt(200, 500));
         } else {
-            toast.classList.add("transform", "-translate-y-6", getRandomElement(translateStrings));
+            toast.classList.add("transform", getRandomElement(translateYStrings), getRandomElement(translateXStrings));
             setTimeout(() => toast.remove(), 500);
         }
     } else {
-        toast.classList.add("translate-x-1.5");
+        toast.classList.add("translate-x-1");
         setTimeout(() => toast.remove(), 500);
     }
     element.appendChild(toast);
@@ -536,7 +547,7 @@ function storeData() {
 function retrieveData() {
     let storedBalance = localStorage.getItem("balance");
     if (storedBalance == null) {
-        window.balance = 0;
+        window.balance = 1000000;
     } else {
         // Any additional storage retrieval must come before the object.values statement
         let levels = JSON.parse(localStorage.getItem("levels"));

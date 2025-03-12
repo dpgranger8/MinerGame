@@ -113,6 +113,7 @@ button.nodeButton {
     bottom: 110%;
     left: 0%;
     z-index: 10;
+    pointer-events: none;
 }
 
 @keyframes moveUp {
