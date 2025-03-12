@@ -30,12 +30,12 @@ let mouseState = {
 let autoFarmerTiles = [];
 
 const rewards = {
-    common: {index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1},
-    uncommon: {index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5},
-    rare: {index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25},
-    epic: {index: 3, rarity: "epic", colors: ["lightsalmon", "darkorange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100},
-    legendary: {index: 4, rarity: "legendary",  colors: ["yellow", "gold"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500},
-    mythic: {index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000}
+    common: {index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]"},
+    uncommon: {index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5, toastColor: "text-[#0000ff]"},
+    rare: {index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25, toastColor: "text-[#ff1493]"},
+    epic: {index: 3, rarity: "epic", colors: ["gold", "darkorange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100, toastColor: "text-[#ff8c00]"},
+    legendary: {index: 4, rarity: "legendary",  colors: ["tomato", "crimson"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500, toastColor: "text-[#ff0000]"},
+    mythic: {index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000, toastColor: "text-[#4b0082]"}
 };
 
 let shopUpgrades = {
@@ -254,8 +254,8 @@ function doIncreaseAction(state, index) {
     if (state.endAngle >= 360) {
         state.endAngle = 0;
         window.balance += state.currentItem.bonus;
-        bonusToast(displayContainer, state.currentItem.bonus, "+", true);
-        bonusToast(container, state.currentItem.bonus, "+", false);
+        bonusToast(displayContainer, state.currentItem.bonus, true, true, state.currentItem.toastColor);
+        bonusToast(container, state.currentItem.bonus, true, false, state.currentItem.toastColor);
         state.currentItem = chooseRarity();
     }
 }
@@ -393,7 +393,7 @@ function populateShop() {
                 modifierUpgrade.textContent = item.modifier(item.level + 1);
                 upgrade.textContent = item.level;
                 title.textContent = item.name + " " + (item.level + 1);
-                bonusToast(display, cost, "-", true);
+                bonusToast(displayContainer, cost, false, true);
                 if (item == shopUpgrades.rarityTier) {
                     populateRarities();
                 }
@@ -426,25 +426,33 @@ function chooseRarity() {
 
 /**
  * Function that adds a bonus toast to either the display or the grid element passed in
- * @param {HTMLElement} element the toast will appear above
- * @param {Int} bonus 
- * @param {String} plusOrMinus should only be "+" or "-"
- * @param {Boolean} isDisplay
+ * @param {HTMLElement} element the toast will appear above this
+ * @param {Int} value 
+ * @param {Boolean} isBonus whether the toast is a bonus
+ * @param {Boolean} isDisplay whether the toast will appear above the display
  */
 
-function bonusToast(button, bonus, plusOrMinus, isDisplay) {
+function bonusToast(element, value, isBonus, isDisplay, color) {
+    // I am so sorry to anyone who has to read this
     let toast = document.createElement("div");
-    let color = (plusOrMinus === "+") ? "text-[#0000ff]" : "text-[#ff0000]";
-    toast.classList.add("bonusToast", color);
-    toast.textContent = plusOrMinus + parseInt(bonus).toLocaleString();
-    let translateStrings = ["-translate-x-3", "-translate-x-1", "translate-x-1", "translate-x-3", "translate-x-5"]
+    toast.textContent = (isBonus ? "+" : "-") + parseInt(value).toLocaleString();
+    let translateStrings = ["-translate-x-5", "-translate-x-4", "-translate-x-3", "-translate-x-2", "-translate-x-1", "translate-x-0", "translate-x-1", "translate-x-2", "translate-x-3", "translate-x-4", "translate-x-5"]
+    let selectedColor = isBonus ? color : "text-[#ff0000]";
+    let isBonusOrMinus = isBonus ? "bonusToast" : "minusToast";
+    toast.classList.add(isBonusOrMinus, selectedColor);
     if (isDisplay) {
-        toast.classList.add("transform", "-translate-y-6", getRandomElement(translateStrings));
+        if (isBonus) {
+            toast.classList.add("transform", "-translate-y-6", getRandomElement(translateStrings));
+            setTimeout(() => toast.remove(), getRandomInt(200, 500));
+        } else {
+            toast.classList.add("transform", "-translate-y-6", getRandomElement(translateStrings));
+            setTimeout(() => toast.remove(), 500);
+        }
     } else {
         toast.classList.add("translate-x-1.5");
+        setTimeout(() => toast.remove(), 500);
     }
-    button.appendChild(toast);
-    setTimeout(() => toast.remove(), getRandomInt(200, 500));
+    element.appendChild(toast);
 }
 
 function noBuyAnimation(button) {
@@ -528,7 +536,7 @@ function storeData() {
 function retrieveData() {
     let storedBalance = localStorage.getItem("balance");
     if (storedBalance == null) {
-        window.balance = 10000000000;
+        window.balance = 0;
     } else {
         // Any additional storage retrieval must come before the object.values statement
         let levels = JSON.parse(localStorage.getItem("levels"));

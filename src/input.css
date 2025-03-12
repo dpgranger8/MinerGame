@@ -90,6 +90,15 @@ button.nodeButton {
     z-index: 5;
 }
 
+.minusToast {
+    position: absolute;
+    background: transparent;
+    animation-name: moveDown;
+    animation-duration: 0.6s;
+    pointer-events: none;
+    z-index: 5;
+}
+
 .shopButton:hover {
     box-shadow: -1px 2px 3px black;
 }
@@ -109,4 +118,9 @@ button.nodeButton {
 @keyframes moveUp {
     from {transform: translateY(-15px); opacity: 0;}
     to {transform: translateY(-35px); opacity: 1;}
+}
+
+@keyframes moveDown {
+    from {transform: translateY(15px); opacity: 0;}
+    to {transform: translateY(35px); opacity: 1;}
 }
