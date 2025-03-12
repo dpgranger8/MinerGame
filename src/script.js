@@ -40,9 +40,9 @@ const rewards = {
 
 let shopUpgrades = {
     farmSpeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 2;}, onUpgrade: () => {}},
-    rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => {return 5}, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
-    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); populateColorGrid(); shopUpgrades.farmer.maxLevel();}},
-    replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid(); populateColorGrid();}},
+    rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => {return 5}, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid();}},
+    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); shopUpgrades.farmer.maxLevel();}},
+    replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid();}},
     farmer: {name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {
         let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(item => !autoFarmerTiles.includes(item));
         let elementID = getRandomElement(selection);
@@ -90,7 +90,14 @@ let shopUpgrades = {
 })();
 
 function resetColorGrid() {
+    Object.values(tileStates).forEach((state) => {
+        if (state.interval) {
+            clearInterval(state.interval);
+            state.interval = undefined;
+        }
+    });
     grid.innerHTML = "";
+    populateColorGrid();
 }
 
 function populateColorGrid() {
@@ -203,7 +210,7 @@ function startAngleIncrease(index, fromAutoFarmer = false) {
     state.interval = setInterval(() => {
         let shouldDoubleSpeed = (autoFarmerTiles.includes(index) && !fromAutoFarmer)
         state.endAngle += (shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) * (shouldDoubleSpeed ? 2 : 1));
-        doIncreaseAction(index);
+        doIncreaseAction(state, index);
     }, 1);
 }
 
@@ -220,18 +227,17 @@ function startAngleDecrease(index) {
         state.interval = setInterval(() => {
             if (autoFarmerTiles.includes(index)) {
                 state.endAngle += shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);;
-                doIncreaseAction(index);
+                doIncreaseAction(state, index);
             } else {
                 state.endAngle -= .1;
-                doDecreaseAction(index);
+                doDecreaseAction(state, index);
             }
         }, 1)
     }
 }
 
-function doDecreaseAction(index) {
+function doDecreaseAction(state, index) {
     let button = document.getElementById("node"+index);
-    let state = tileStates[index];
     button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
     if (state.endAngle <= 0) {
         state.endAngle = 0;
@@ -241,10 +247,9 @@ function doDecreaseAction(index) {
     }
 }
 
-function doIncreaseAction(index) {
+function doIncreaseAction(state, index) {
     let container = document.getElementById("container"+index);
     let button = document.getElementById("node"+index);
-    let state = tileStates[index];
     button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
     if (state.endAngle >= 360) {
         state.endAngle = 0;
@@ -315,7 +320,7 @@ function resetShop() {
 }
 
 function populateShop() {
-    Object.entries(shopUpgrades).forEach(([key, item]) => {
+    Object.values(shopUpgrades).forEach(item => {
         let shopButton = document.createElement("button");
         shopButton.style.backgroundImage = `url(${item.image})`;
         shopButton.classList.add("shopButton", "relative", "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
@@ -429,14 +434,17 @@ function chooseRarity() {
 
 function bonusToast(button, bonus, plusOrMinus, isDisplay) {
     let toast = document.createElement("div");
-    let color = (plusOrMinus === "+") ? "text-[#0000ff]" : "text-[#ff0000]"
-    toast.classList.add("bonusToast", color, "translate-x-1.5");
+    let color = (plusOrMinus === "+") ? "text-[#0000ff]" : "text-[#ff0000]";
+    toast.classList.add("bonusToast", color);
     toast.textContent = plusOrMinus + parseInt(bonus).toLocaleString();
+    let translateStrings = ["-translate-x-3", "-translate-x-1", "translate-x-1", "translate-x-3", "translate-x-5"]
     if (isDisplay) {
-        toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
+        toast.classList.add("transform", "-translate-y-6", getRandomElement(translateStrings));
+    } else {
+        toast.classList.add("translate-x-1.5");
     }
     button.appendChild(toast);
-    setTimeout(() => toast.remove(), 500);
+    setTimeout(() => toast.remove(), getRandomInt(200, 500));
 }
 
 function noBuyAnimation(button) {
@@ -509,7 +517,7 @@ function getRandomElement(arr) {
 
 function storeData() {
     let levels = [];
-    Object.entries(shopUpgrades).forEach(([key, upgrade]) => {
+    Object.values(shopUpgrades).forEach(upgrade => {
         levels.push(upgrade.level);
     });
     localStorage.setItem("levels", JSON.stringify(levels));
@@ -522,12 +530,12 @@ function retrieveData() {
     if (storedBalance == null) {
         window.balance = 10000000000;
     } else {
-        // Any additional storage retrieval must come before the object.entries statement
+        // Any additional storage retrieval must come before the object.values statement
         let levels = JSON.parse(localStorage.getItem("levels"));
         let autoFarm = JSON.parse(localStorage.getItem("autoFarmers"));
         autoFarmerTiles = autoFarm;
         let counter = 0;
-        Object.entries(shopUpgrades).forEach(([key, upgrade]) => {
+        Object.values(shopUpgrades).forEach(upgrade => {
             upgrade.level = levels[counter];
             if (upgrade.name === "Farm Area") {
                 shopUpgrades.hoverArea.onUpgrade(upgrade.level);
