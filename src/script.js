@@ -236,17 +236,6 @@ function startAngleDecrease(index) {
     }
 }
 
-function doDecreaseAction(state, index) {
-    let button = document.getElementById("node"+index);
-    button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
-    if (state.endAngle <= 0) {
-        state.endAngle = 0;
-        clearInterval(state.interval)
-        state.interval = undefined;
-        button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark})`;
-    }
-}
-
 function doIncreaseAction(state, index) {
     let container = document.getElementById("container"+index);
     let button = document.getElementById("node"+index);
@@ -257,6 +246,17 @@ function doIncreaseAction(state, index) {
         bonusToast(displayContainer, state.currentItem.bonus, true, true, state.currentItem.toastColor);
         bonusToast(container, state.currentItem.bonus, true, false, state.currentItem.toastColor);
         state.currentItem = chooseRarity();
+    }
+}
+
+function doDecreaseAction(state, index) {
+    let button = document.getElementById("node"+index);
+    button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
+    if (state.endAngle <= 0) {
+        state.endAngle = 0;
+        clearInterval(state.interval)
+        state.interval = undefined;
+        button.style.background = `linear-gradient(${state.gradientUnsetLight}, ${state.gradientUnsetDark})`;
     }
 }
 
