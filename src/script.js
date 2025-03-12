@@ -1,6 +1,7 @@
 const grid = document.getElementById("minegrid");
 const increaseHitbox = document.getElementById("extraPadding");
 const display = document.getElementById("display");
+const displayContainer = document.getElementById("displayContainer");
 const rewardsContainer = document.getElementById("rewards");
 const shopContainer = document.getElementById("shopContainer");
 
@@ -116,13 +117,13 @@ function populateColorGrid() {
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
             margin.addEventListener("mouseover", () => {
-                increaseGradient(i)
+                startAngleIncrease(i)
                 mouseState.whichTile = i;
                 hoverOtherTiles(true);
             });
 
             margin.addEventListener("mouseleave", () => {
-                decreaseGradient(i)
+                startAngleDecrease(i)
                 mouseState.whichTile = i;
                 hoverOtherTiles(false);
             })
@@ -148,7 +149,7 @@ function populateColorGrid() {
 
 function addAutoFarmer(element, index) {
     element.classList.add("autoFarmer");
-    increaseGradient(index, true);
+    startAngleIncrease(index, true);
 }
 
 function hoverOtherTiles(add) {
@@ -171,10 +172,10 @@ function hoverOtherTiles(add) {
         if (tileButton != null && tileStates[targetTile]) {
             if (add) {
                 tileButton.classList.add("hover");
-                increaseGradient(targetTile);
+                startAngleIncrease(targetTile);
             } else {
                 tileButton.classList.remove("hover");
-                decreaseGradient(targetTile);
+                startAngleDecrease(targetTile);
             }
         }
     }
@@ -189,11 +190,13 @@ function tilesBeingHovered() {
 }
 
 /**
+ * Starts increasing the end angle of a tile at a rate determined by upgrades and auto farm tiles.
  * @param {Int} index of grid element to apply styles to
- * @param {Boolean} whether the request to increase gradient is coming from the auto farmer function or not
+ * @param {Boolean} whether the request to increase gradient angle is coming from the auto farmer function. If not that means it is being called from a mouse hover.
+ * I do acknowledge this is a bit confusing
  */
 
-function increaseGradient(index, fromAutoFarmer = false) {
+function startAngleIncrease(index, fromAutoFarmer = false) {
     let state = tileStates[index];
     clearInterval(state.interval);
     state.interval = undefined;
@@ -204,7 +207,12 @@ function increaseGradient(index, fromAutoFarmer = false) {
     }, 1);
 }
 
-function decreaseGradient(index, ms) {
+/**
+ * Starts decreasing the end angle of a tile over time.
+ * @param {number} index - The index of the grid element.
+ */
+
+function startAngleDecrease(index) {
     let state = tileStates[index];
     if (state.interval) {
         clearInterval(state.interval);
@@ -411,15 +419,25 @@ function chooseRarity() {
     }
 }
 
+/**
+ * Function that adds a bonus toast to either the display or the grid element passed in
+ * @param {HTMLElement} button 
+ * @param {Int} bonus 
+ * @param {String} plusOrMinus should only be "+" or "-"
+ * @param {Boolean} isDisplay 
+ */
+
 function bonusToast(button, bonus, plusOrMinus, isDisplay) {
     let toast = document.createElement("div");
     let color = (plusOrMinus === "+") ? "text-[#0000ff]" : "text-[#ff0000]"
     toast.classList.add("bonusToast", color, "translate-x-1.5");
-    if (isDisplay) {
-        toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
-    }
     toast.textContent = plusOrMinus + parseInt(bonus).toLocaleString();
-    button.appendChild(toast);
+    toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
+    if (isDisplay) {
+        displayContainer.appendChild(toast);
+    } else {
+        button.appendChild(toast);
+    }
     setTimeout(() => toast.remove(), 500);
 }
 
