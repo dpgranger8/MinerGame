@@ -249,7 +249,7 @@ function doIncreaseAction(index) {
     if (state.endAngle >= 360) {
         state.endAngle = 0;
         window.balance += state.currentItem.bonus;
-        bonusToast(display, state.currentItem.bonus, "+", true);
+        bonusToast(displayContainer, state.currentItem.bonus, "+", true);
         bonusToast(container, state.currentItem.bonus, "+", false);
         state.currentItem = chooseRarity();
     }
@@ -421,10 +421,10 @@ function chooseRarity() {
 
 /**
  * Function that adds a bonus toast to either the display or the grid element passed in
- * @param {HTMLElement} button 
+ * @param {HTMLElement} element the toast will appear above
  * @param {Int} bonus 
  * @param {String} plusOrMinus should only be "+" or "-"
- * @param {Boolean} isDisplay 
+ * @param {Boolean} isDisplay
  */
 
 function bonusToast(button, bonus, plusOrMinus, isDisplay) {
@@ -432,12 +432,10 @@ function bonusToast(button, bonus, plusOrMinus, isDisplay) {
     let color = (plusOrMinus === "+") ? "text-[#0000ff]" : "text-[#ff0000]"
     toast.classList.add("bonusToast", color, "translate-x-1.5");
     toast.textContent = plusOrMinus + parseInt(bonus).toLocaleString();
-    toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
     if (isDisplay) {
-        displayContainer.appendChild(toast);
-    } else {
-        button.appendChild(toast);
+        toast.classList.add("transform", "-translate-y-6", "-translate-x-1")
     }
+    button.appendChild(toast);
     setTimeout(() => toast.remove(), 500);
 }
 
