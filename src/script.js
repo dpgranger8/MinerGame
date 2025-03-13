@@ -612,11 +612,14 @@ function retrieveData() {
     } else {
         // Any additional storage retrieval must come before the object.values statement
         let levels = JSON.parse(localStorage.getItem("levels"));
-        let autoFarm = JSON.parse(localStorage.getItem("autoFarmers"));
-        autoFarmerTiles = autoFarm;
+        autoFarmerTiles = JSON.parse(localStorage.getItem("autoFarmers"));
         let counter = 0;
         Object.values(shopUpgrades).forEach(upgrade => {
-            upgrade.level = levels[counter];
+            if (upgrade.name === "Add Auto Farmer") {
+                upgrade.level = autoFarmerTiles.length; // Prevents incorrect count bug where the page was refreshed before a building could be placed
+            } else {
+                upgrade.level = levels[counter];
+            }
             if (upgrade.name === "Farm Area") {
                 shopUpgrades.hoverArea.onUpgrade(upgrade.level);
             }
