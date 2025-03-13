@@ -7,30 +7,33 @@
     <link rel="stylesheet" href="./src/output.css">
     <script defer src="./src/script.js"></script>
 </head>
-<body class="flex h-screen w-screen">
-    <div class="flex w-screen flex-col items-center absolute top-10">
-        <div id="balance", class="flex w-7/8 justify-between bg-gradient-to-b from-green-200 to-green-300 rounded-2xl p-10 mb-10">
-            <span>Color Farm V1</span>
-            <span>Balance</span>
-            <div id="displayContainer">
-                <span id="display"></span>
-            </div>
-        </div>
+<body class="flex justify-center h-screen w-screen">
+    <div class="flex w-7/8 flex-col items-center top-10 gap-10">
         <button onclick="debug()" class="border-2 rounded-2xl">
             debug reset storage
         </button>
-        <div class="flex w-7/8 items-center justify-between">
-            <div class="flex flex-col items-center justify-between">
+        <div class="flex w-full gap-10">
+            <div class="flex flex-col flex-grow items-baseline gap-5">
+                <div id="balance", class="grid md:grid-cols-3 items-center place-content-center w-full bg-gradient-to-b from-green-200 to-green-300 rounded-2xl px-10">
+                    <span class="justify-self-start">Color Farm V1</span>
+                    <span class="justify-self-end">Balance</span>
+                    <div id="displayContainer" class="justify-self-end">
+                        <span id="display"></span>
+                    </div>
+                </div>
                 <span>Shop</span>
-                <div id="shopContainer" class="grid grid-cols-4 gap-5 bg-green">
+                <div id="shopContainer" class="grid md:grid-cols-6 grid-cols-3 gap-5 bg-green">
                     <!-- Shop populated by script -->
                 </div>
             </div>
-            <div id="minegrid" class="grid grid-cols-8 p-2 rounded-2xl gap-0 bottom-0">
-                <!-- Grid is populated by script -->
+            <div class="flex flex-col items-center gap-5 shrink-0">
+                <div id="minegrid" class="grid grid-cols-8 p-2 rounded-2xl gap-0 bottom-0">
+                    <!-- Grid is populated by script -->
+                </div>
+                <span id="statusText" class="text-red-500 animate-pulse"></span>
             </div>
         </div>
-        <div id="rewards" class="flex w-7/8 flex-col justify-center bg-gradient-to-b from-blue-200 to-blue-300 rounded-2xl mt-10 mb-10 p-10">
+        <div id="rewards" class="flex flex-col w-full justify-center bg-gradient-to-b from-blue-200 to-blue-300 rounded-2xl mb-10 p-10">
             <!-- Chances populated by script -->
         </div>
     </div>

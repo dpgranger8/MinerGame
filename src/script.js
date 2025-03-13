@@ -4,6 +4,7 @@ const display = document.getElementById("display");
 const displayContainer = document.getElementById("displayContainer");
 const rewardsContainer = document.getElementById("rewards");
 const shopContainer = document.getElementById("shopContainer");
+const statusText = document.getElementById("statusText");
 
 let color1Choices = ["moccasin", "navajowhite"];
 let color2Choices = ["burlywood", "sandybrown"];
@@ -89,6 +90,7 @@ let shopUpgrades = {
     populateRarities();
     populateShop();
     populateColorGrid();
+    statusText.textContent = "Hover over any tile to start farming it";
 })();
 
 function resetColorGrid() {
@@ -443,11 +445,12 @@ function chooseRarity() {
  */
 
 function bonusToast(element, value, isBonus, isDisplay, color) {
-    // I am so sorry to anyone who has to read this
+    // I am so sorry to anyone who has to read this its a mess
     let toast = document.createElement("div");
     toast.textContent = (isBonus ? "+" : "-") + parseInt(value).toLocaleString();
     let translateXStrings = ["-translate-x-7", "-translate-x-6", "-translate-x-5", "-translate-x-4", "-translate-x-3", "-translate-x-2", "-translate-x-1", "translate-x-0", "translate-x-1", "translate-x-2", "translate-x-3", "translate-x-4", "translate-x-5", "translate-x-6", "translate-x-7"];
-    let translateYStrings = ["-translate-y-8", "-translate-y-7", "-translate-y-6", "-translate-y-5", "-translate-y-4"]
+    let translateYStrings = ["-translate-y-8", "-translate-y-7", "-translate-y-6"]
+    let translateBottomYStrings = ["-translate-y-6", "-translate-y-5", "-translate-y-4"]
     let selectedColor = isBonus ? color : "text-[#ff0000]";
     let isBonusOrMinus = isBonus ? "bonusToast" : "minusToast";
     toast.classList.add(isBonusOrMinus, selectedColor);
@@ -456,7 +459,7 @@ function bonusToast(element, value, isBonus, isDisplay, color) {
             toast.classList.add("transform", getRandomElement(translateYStrings), getRandomElement(translateXStrings));
             setTimeout(() => toast.remove(), getRandomInt(200, 500));
         } else {
-            toast.classList.add("transform", getRandomElement(translateYStrings), getRandomElement(translateXStrings));
+            toast.classList.add("transform", getRandomElement(translateBottomYStrings), getRandomElement(translateXStrings));
             setTimeout(() => toast.remove(), 500);
         }
     } else {
@@ -535,11 +538,7 @@ function getRandomElement(arr) {
 }
 
 function storeData() {
-    let levels = [];
-    Object.values(shopUpgrades).forEach(upgrade => {
-        levels.push(upgrade.level);
-    });
-    localStorage.setItem("levels", JSON.stringify(levels));
+    localStorage.setItem("levels", JSON.stringify(getLevels()));
     localStorage.setItem("balance", window.balance);
     localStorage.setItem("autoFarmers", JSON.stringify(autoFarmerTiles));
 }
@@ -563,6 +562,14 @@ function retrieveData() {
         });
         window.balance = parseInt(storedBalance);
     }
+}
+
+function getLevels() {
+    let levels = [];
+    Object.values(shopUpgrades).forEach(upgrade => {
+        levels.push(upgrade.level);
+    });
+    return levels;
 }
 
 function debug() {

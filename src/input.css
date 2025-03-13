@@ -116,6 +116,12 @@ button.nodeButton {
     pointer-events: none;
 }
 
+#statusText {
+    animation-name: scaleUpDown;
+    animation-duration: 0.8s;
+    pointer-events: none;
+}
+
 @keyframes moveUp {
     from {transform: translateY(-15px); opacity: 0;}
     to {transform: translateY(-35px); opacity: 1;}
@@ -124,4 +130,10 @@ button.nodeButton {
 @keyframes moveDown {
     from {transform: translateY(15px); opacity: 0;}
     to {transform: translateY(35px); opacity: 1;}
+}
+
+@keyframes scaleUpDown {
+    0% {transform: scale(1); opacity: 0.7;}
+    50% {transform: scale(1.05); opacity: 1;}
+    100% {transform: scale(1); opacity: 0.7;}
 }
