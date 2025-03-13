@@ -87,7 +87,6 @@ button.nodeButton {
     animation-name: moveUp;
     animation-duration: 0.6s;
     pointer-events: none;
-    z-index: 5;
 }
 
 .minusToast {
@@ -96,7 +95,6 @@ button.nodeButton {
     animation-name: moveDown;
     animation-duration: 0.6s;
     pointer-events: none;
-    z-index: 5;
 }
 
 .shopButton:hover {

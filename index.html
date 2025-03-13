@@ -8,8 +8,8 @@
     <script defer src="./src/script.js"></script>
 </head>
 <body class="flex justify-center h-screen w-screen">
-    <div class="flex w-7/8 flex-col items-center top-10 gap-10">
-        <button onclick="debug()" class="border-2 rounded-2xl">
+    <div class="flex w-7/8 flex-col items-center top-10 gap-20">
+        <button onclick="debug()" class="border-2 rounded-2xl mt-10">
             debug reset storage
         </button>
         <div class="flex w-full gap-10">
@@ -22,15 +22,15 @@
                     </div>
                 </div>
                 <span>Shop</span>
-                <div id="shopContainer" class="grid md:grid-cols-6 grid-cols-3 gap-5 bg-green">
+                <div id="shopContainer" class="grid md:grid-cols-4 grid-cols-3 gap-5 bg-green">
                     <!-- Shop populated by script -->
                 </div>
             </div>
-            <div class="flex flex-col items-center gap-5 shrink-0">
+            <div class="flex flex-col relative items-center gap-5 shrink-0">
                 <div id="minegrid" class="grid grid-cols-8 p-2 rounded-2xl gap-0 bottom-0">
                     <!-- Grid is populated by script -->
                 </div>
-                <span id="statusText" class="text-red-500 animate-pulse"></span>
+                <span id="statusText" class="text-red-500 absolute -bottom-10 animate-pulse"></span>
             </div>
         </div>
         <div id="rewards" class="flex flex-col w-full justify-center bg-gradient-to-b from-blue-200 to-blue-300 rounded-2xl mb-10 p-10">

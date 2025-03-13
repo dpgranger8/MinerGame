@@ -40,7 +40,7 @@ const rewards = {
 };
 
 let shopUpgrades = {
-    farmSpeed: {name: "Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 3;}, onUpgrade: () => {}},
+    farmSpeed: {name: "Hover Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 3;}, onUpgrade: () => {}},
     rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => {return 5}, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid();}},
     expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); shopUpgrades.farmer.maxLevel();}},
     replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid();}},
@@ -90,7 +90,6 @@ let shopUpgrades = {
     populateRarities();
     populateShop();
     populateColorGrid();
-    statusText.textContent = "Hover over any tile to start farming it";
 })();
 
 function resetColorGrid() {
@@ -128,6 +127,7 @@ function populateColorGrid() {
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
             margin.addEventListener("mouseover", () => {
+                statusText.textContent = "";
                 startAngleIncrease(i)
                 mouseState.whichTile = i;
                 hoverOtherTiles(true);
@@ -538,12 +538,19 @@ function getRandomElement(arr) {
 }
 
 function storeData() {
-    localStorage.setItem("levels", JSON.stringify(getLevels()));
+    localStorage.setItem("levels", JSON.stringify(getShopLevels()));
     localStorage.setItem("balance", window.balance);
     localStorage.setItem("autoFarmers", JSON.stringify(autoFarmerTiles));
+    localStorage.setItem("statusText", statusText.textContent);
 }
 
 function retrieveData() {
+    let status = localStorage.getItem("statusText");
+    if (status == null) {
+        statusText.textContent = "Hover over any tile to start farming it";
+    } else {
+        statusText.textContent = status;
+    }
     let storedBalance = localStorage.getItem("balance");
     if (storedBalance == null) {
         window.balance = 1000000;
@@ -564,7 +571,7 @@ function retrieveData() {
     }
 }
 
-function getLevels() {
+function getShopLevels() {
     let levels = [];
     Object.values(shopUpgrades).forEach(upgrade => {
         levels.push(upgrade.level);
@@ -576,5 +583,6 @@ function debug() {
     localStorage.removeItem("levels");
     localStorage.removeItem("balance");
     localStorage.removeItem("autoFarmers");
+    localStorage.removeItem("statusText");
     location.reload();
 }
