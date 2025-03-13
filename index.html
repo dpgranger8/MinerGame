@@ -13,10 +13,10 @@
             debug reset storage
         </button>
         <div class="flex w-full gap-10">
-            <div class="flex flex-col flex-grow items-baseline gap-5">
-                <div id="balance", class="grid md:grid-cols-3 items-center place-content-center w-full bg-gradient-to-b from-green-200 to-green-300 rounded-2xl px-10">
+            <div class="flex flex-col flex-grow items-center gap-5">
+                <div id="balance", class="grid md:grid-cols-3 items-center place-content-center w-full h-[100px] bg-gradient-to-b from-green-200 to-green-300 rounded-2xl px-10 pointer-events-none">
                     <span class="justify-self-start">Color Farm V1</span>
-                    <span class="justify-self-end">Balance</span>
+                    <span class="justify-self-end">Balance:</span>
                     <div id="displayContainer" class="justify-self-end">
                         <span id="display"></span>
                     </div>
@@ -27,13 +27,16 @@
                 </div>
             </div>
             <div class="flex flex-col relative items-center gap-5 shrink-0">
-                <div id="minegrid" class="grid grid-cols-8 p-2 rounded-2xl gap-0 bottom-0">
+                <div id="mineGrid" class="grid grid-cols-8 p-2 rounded-2xl gap-0 bottom-0">
                     <!-- Grid is populated by script -->
                 </div>
-                <span id="statusText" class="text-red-500 absolute -bottom-10 animate-pulse"></span>
+                <div id="selectionGrid" class="grid grid-cols-8 p-2 rounded-2xl gap-0 bottom-0">
+                    <!-- Fake Grid used for building placement -->
+                </div>
+                <span id="statusText" class="text-red-500 absolute -bottom-10"></span>
             </div>
         </div>
-        <div id="rewards" class="flex flex-col w-full justify-center bg-gradient-to-b from-blue-200 to-blue-300 rounded-2xl mb-10 p-10">
+        <div id="rewards" class="flex flex-col w-full justify-center bg-gradient-to-b from-blue-200 to-blue-300 rounded-2xl mb-10 p-10 pointer-events-none">
             <!-- Chances populated by script -->
         </div>
     </div>

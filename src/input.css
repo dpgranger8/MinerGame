@@ -21,14 +21,17 @@ button.nodeButton {
     z-index: 3;
 }
 
-#minegrid {
-    background: linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url('../src/images/grass-sample.png');
+#mineGrid, #selectionGrid {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), url('../src/images/grass-sample.png');
     background-size: contain;
+}
+
+#mineGrid {
     cursor: url('../src/images/small-rake.png') 8 40, auto;
 }
 
-#balance {
-    height: 100px;
+#selectionGrid {
+    cursor: pointer;
 }
 
 .nodeContainer {
@@ -41,12 +44,7 @@ button.nodeButton {
     border-radius: 10px;
 }
 
-.extraPadding:hover {
-    border: 1px solid white;
-    border-radius: 0px;
-}
-
-.hover {
+.extraPadding:hover, .hover {
     border: 1px solid white;
     border-radius: 0px;
 }
@@ -67,34 +65,25 @@ button.nodeButton {
     animation: rotateBackground 3s linear infinite;
 }
 
-@keyframes rotateBackground {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 .invisiblePadding {
     display: flex;
     border: 1px solid transparent;
 }
 
-.bonusToast {
+.bonusToast, .minusToast {
     position: absolute;
     background: transparent;
-    animation-name: moveUp;
     animation-duration: 0.6s;
     pointer-events: none;
 }
 
+.bonusToast {
+    animation-name: moveUp;
+    z-index: 5;
+}
+
 .minusToast {
-    position: absolute;
-    background: transparent;
     animation-name: moveDown;
-    animation-duration: 0.6s;
-    pointer-events: none;
 }
 
 .shopButton:hover {
@@ -115,9 +104,17 @@ button.nodeButton {
 }
 
 #statusText {
-    animation-name: scaleUpDown;
-    animation-duration: 0.8s;
+    animation: scaleUpDown 0.8s linear infinite;
     pointer-events: none;
+}
+
+@keyframes rotateBackground {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes moveUp {

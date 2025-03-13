@@ -1,10 +1,11 @@
-const grid = document.getElementById("minegrid");
+const grid = document.getElementById("mineGrid");
 const increaseHitbox = document.getElementById("extraPadding");
 const display = document.getElementById("display");
 const displayContainer = document.getElementById("displayContainer");
-const rewardsContainer = document.getElementById("rewards");
+const raritiesContainer = document.getElementById("rewards");
 const shopContainer = document.getElementById("shopContainer");
 const statusText = document.getElementById("statusText");
+const balanceHeader = document.getElementById("balance");
 
 let color1Choices = ["moccasin", "navajowhite"];
 let color2Choices = ["burlywood", "sandybrown"];
@@ -52,9 +53,14 @@ let shopUpgrades = {
         autoFarmerTiles.push(elementID);
         shopUpgrades.farmer.maxLevel();
         storeData();
+        let blur = ["opacity-50", "pointer-events-none"];
+        balanceHeader.classList.add(blur[0], blur[1]);
+        shopContainer.classList.add(blur[0], blur[1]);
+        raritiesContainer.classList.add(blur[0], blur[1]);
+
     }},
     autoFarmerSpeed: {name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return Number((0.1 + (level / 10)).toFixed(1));}, cost: (level) => {return (level + 1) ** 4;}, onUpgrade: () => {}},
-    multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return Number((0.1 + (level / 10)).toFixed(1));}, cost: (level) => {return (level + 1) ** 4;}, onUpgrade: () => {}},
+    multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => {}},
     hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return 8}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {
         switch (level) {
             case 1:
@@ -273,11 +279,11 @@ function doDecreaseAction(state, index) {
 }
 
 function populateRarities() {
-    rewardsContainer.innerHTML = "";
+    raritiesContainer.innerHTML = "";
 
     let rewardsTitles = document.createElement("div");
     rewardsTitles.classList.add("flex", "justify-between", "mb-5");
-    rewardsContainer.appendChild(rewardsTitles)
+    raritiesContainer.appendChild(rewardsTitles)
     let titles = ["Rarity", "Chance", "Bonus"];
     let title = document.createElement("span");
     for (let i = 0; i < 3; i++) {
@@ -315,7 +321,7 @@ function populateRarities() {
             let spacer = document.createElement("div");
             spacer.classList.add("flex-grow");
 
-            rewardsContainer.appendChild(listItem);
+            raritiesContainer.appendChild(listItem);
 
             itemGroupDiv.appendChild(nodeButton);
             itemGroupDiv.appendChild(labelDiv);
@@ -327,19 +333,17 @@ function populateRarities() {
     }
 }
 
-function resetShop() {
-    shopContainer.innerHTML = "";
-}
-
 function populateShop() {
+    shopContainer.innerHTML = "";
+
     Object.values(shopUpgrades).forEach(item => {
         let shopButton = document.createElement("button");
         shopButton.style.backgroundImage = `url(${item.image})`;
-        shopButton.classList.add("shopButton", "relative", "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md");
+        shopButton.classList.add("shopButton", "relative", "bg-cover", "bg-center", "w-[50px]", "h-[50px]", "border-1", "rounded-md", "hover:cursor-pointer");
         shopContainer.appendChild(shopButton);
 
         let toolTip = document.createElement("div");
-        toolTip.classList.add("toolTip", "absolute", "z-1", "rounded-md", "p-5", "bg-gray-300/50", "backdrop-blur-sm", "flex", "flex-col", "items-center", "border-1");
+        toolTip.classList.add("toolTip", "absolute", "z-1", "rounded-md", "p-5", "bg-gray-300/45", "backdrop-blur-sm", "flex", "flex-col", "items-center", "border-1");
 
         let title = document.createElement("div");
         title.classList.add("w-7/8");
@@ -410,7 +414,6 @@ function populateShop() {
                     populateRarities();
                 }
                 if (item.level == item.maxLevel()) {
-                    resetShop();
                     populateShop();
                     buyAnimation(shopButton);
                 } else {
@@ -547,7 +550,7 @@ function storeData() {
 function retrieveData() {
     let status = localStorage.getItem("statusText");
     if (status == null) {
-        statusText.textContent = "Hover over any tile to start farming it";
+        statusText.textContent = "Hover over any tile to start farming it!";
     } else {
         statusText.textContent = status;
     }

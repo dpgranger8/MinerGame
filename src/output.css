@@ -581,29 +581,17 @@
   .end-2 {
     inset-inline-end: calc(var(--spacing) * 2);
   }
-  .-top-0 {
-    top: calc(var(--spacing) * -0);
-  }
-  .-top-10 {
-    top: calc(var(--spacing) * -10);
-  }
   .top-10 {
     top: calc(var(--spacing) * 10);
   }
   .right-0 {
     right: calc(var(--spacing) * 0);
   }
-  .-bottom-1 {
-    bottom: calc(var(--spacing) * -1);
-  }
   .-bottom-10 {
     bottom: calc(var(--spacing) * -10);
   }
   .bottom-0 {
     bottom: calc(var(--spacing) * 0);
-  }
-  .bottom-10 {
-    bottom: calc(var(--spacing) * 10);
   }
   .isolate {
     isolation: isolate;
@@ -829,6 +817,9 @@
   }
   .h-\[50px\] {
     height: 50px;
+  }
+  .h-\[100px\] {
+    height: 100px;
   }
   .h-screen {
     height: 100vh;
@@ -1080,9 +1071,6 @@
   .animate-none {
     animation: none;
   }
-  .animate-pulse {
-    animation: var(--animate-pulse);
-  }
   .touch-pinch-zoom {
     --tw-pinch-zoom: pinch-zoom;
     touch-action: var(--tw-pan-x,) var(--tw-pan-y,) var(--tw-pinch-zoom,);
@@ -1191,9 +1179,6 @@
   }
   .auto-rows-min {
     grid-auto-rows: min-content;
-  }
-  .grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1609,8 +1594,8 @@
   .bg-cyan-100 {
     background-color: var(--color-cyan-100);
   }
-  .bg-gray-300\/50 {
-    background-color: color-mix(in oklab, var(--color-gray-300) 50%, transparent);
+  .bg-gray-300\/45 {
+    background-color: color-mix(in oklab, var(--color-gray-300) 45%, transparent);
   }
   .bg-red-500 {
     background-color: var(--color-red-500);
@@ -2121,6 +2106,9 @@
   .scheme-only-light {
     color-scheme: only light;
   }
+  .opacity-50 {
+    opacity: 50%;
+  }
   .mix-blend-plus-darker {
     mix-blend-mode: plus-darker;
   }
@@ -2424,6 +2412,13 @@
   .transform-view {
     transform-box: view-box;
   }
+  .hover\:cursor-pointer {
+    &:hover {
+      @media (hover: hover) {
+        cursor: pointer;
+      }
+    }
+  }
   .md\:grid-cols-3 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2432,11 +2427,6 @@
   .md\:grid-cols-4 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
-  .md\:grid-cols-6 {
-    @media (width >= 48rem) {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
     }
   }
 }
@@ -2454,13 +2444,15 @@ button.nodeButton {
   cursor: url('../src/images/small-rake.png') 8 40, auto;
   z-index: 3;
 }
-#minegrid {
-  background: linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), url('../src/images/grass-sample.png');
+#mineGrid, #selectionGrid {
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), url('../src/images/grass-sample.png');
   background-size: contain;
+}
+#mineGrid {
   cursor: url('../src/images/small-rake.png') 8 40, auto;
 }
-#balance {
-  height: 100px;
+#selectionGrid {
+  cursor: pointer;
 }
 .nodeContainer {
   display: flex;
@@ -2470,11 +2462,7 @@ button.nodeButton {
   border: 1px solid transparent;
   border-radius: 10px;
 }
-.extraPadding:hover {
-  border: 1px solid white;
-  border-radius: 0px;
-}
-.hover {
+.extraPadding:hover, .hover {
   border: 1px solid white;
   border-radius: 0px;
 }
@@ -2492,31 +2480,22 @@ button.nodeButton {
   background: repeating-conic-gradient(white 0deg 90deg, black 90deg 180deg);
   animation: rotateBackground 3s linear infinite;
 }
-@keyframes rotateBackground {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 .invisiblePadding {
   display: flex;
   border: 1px solid transparent;
 }
-.bonusToast {
+.bonusToast, .minusToast {
   position: absolute;
   background: transparent;
-  animation-name: moveUp;
   animation-duration: 0.6s;
   pointer-events: none;
 }
+.bonusToast {
+  animation-name: moveUp;
+  z-index: 5;
+}
 .minusToast {
-  position: absolute;
-  background: transparent;
   animation-name: moveDown;
-  animation-duration: 0.6s;
-  pointer-events: none;
 }
 .shopButton:hover {
   box-shadow: -1px 2px 3px black;
@@ -2533,9 +2512,16 @@ button.nodeButton {
   pointer-events: none;
 }
 #statusText {
-  animation-name: scaleUpDown;
-  animation-duration: 0.8s;
+  animation: scaleUpDown 0.8s linear infinite;
   pointer-events: none;
+}
+@keyframes rotateBackground {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes moveUp {
   from {
