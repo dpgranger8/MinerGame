@@ -9,7 +9,7 @@
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-button.nodeButton {
+button.nodeButton, button.fakeNodeButton {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -17,8 +17,16 @@ button.nodeButton {
     height: 30px;
     border-radius: 5px;
     font-size: small;
-    cursor: url('../src/images/small-rake.png') 8 40, auto;
     z-index: 3;
+}
+
+button.nodeButton {
+    cursor: url('../src/images/small-rake.png') 8 40, auto;
+}
+
+button.fakeNodeButton {
+    cursor: pointer;
+    animation: scaleUpDown 0.8s linear infinite;
 }
 
 #mineGrid, #selectionGrid {

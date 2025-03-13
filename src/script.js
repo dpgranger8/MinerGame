@@ -1,4 +1,5 @@
 const grid = document.getElementById("mineGrid");
+const fakeGrid = document.getElementById("selectionGrid");
 const increaseHitbox = document.getElementById("extraPadding");
 const display = document.getElementById("display");
 const displayContainer = document.getElementById("displayContainer");
@@ -43,52 +44,12 @@ const rewards = {
 let shopUpgrades = {
     farmSpeed: {name: "Hover Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 3;}, onUpgrade: () => {}},
     rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => {return 5}, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid();}},
-    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); shopUpgrades.farmer.maxLevel();}},
+    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); shopUpgrades.farmer.maxLevel(); populateShop();}},
     replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid();}},
-    farmer: {name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {
-        let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(item => !autoFarmerTiles.includes(item));
-        let elementID = getRandomElement(selection);
-        let marginToEdit = document.getElementById("margin"+elementID);
-        addAutoFarmer(marginToEdit, elementID);
-        autoFarmerTiles.push(elementID);
-        shopUpgrades.farmer.maxLevel();
-        storeData();
-        let blur = ["opacity-50", "pointer-events-none"];
-        balanceHeader.classList.add(blur[0], blur[1]);
-        shopContainer.classList.add(blur[0], blur[1]);
-        raritiesContainer.classList.add(blur[0], blur[1]);
-
-    }},
+    farmer: {name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {placeBuilding();}},
     autoFarmerSpeed: {name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return Number((0.1 + (level / 10)).toFixed(1));}, cost: (level) => {return (level + 1) ** 4;}, onUpgrade: () => {}},
     multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => {}},
-    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return 8}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {
-        switch (level) {
-            case 1:
-                mouseState.farmAreaOffsets = [+1];
-                break;
-            case 2:
-                mouseState.farmAreaOffsets = [-1, +1];
-                break;
-            case 3:
-                mouseState.farmAreaOffsets = [-1, +1, -8, +8];
-                break;
-            case 4:
-                mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7];
-                break;
-            case 5:
-                mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16];
-                break;
-            case 6:
-                mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16, -10, -6, +10, +6];
-                break;
-            case 7:
-                mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16, -10, -6, +10, +6, -17, -15, +17, +15];
-                break;
-            case 8:
-                mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16, -10, -6, +10, +6, -17, -15, +17, +15, -18, -14, +18, +14];
-                break;
-        }
-    }}
+    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return 8}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {setFarmAreaOffsets(shopUpgrades.hoverArea.level)}}
 };
 
 (() => {
@@ -159,6 +120,68 @@ function populateColorGrid() {
             let margin = document.createElement("div");
             margin.classList.add("invisiblePadding", "p-1", "flex");
             grid.appendChild(margin);
+            margin.appendChild(button);
+        }
+    }
+}
+
+function placeBuilding() {
+    //This code is very similar to populateColorGrid because it is populating a fake grid to show as a selection screen to place buildings on.
+    //Currently this only places auto farmers but more buildings are planned.
+    //The real grid is hidden temporarily to allow the fake grid to show as a selection screen.
+    let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(item => !autoFarmerTiles.includes(item));
+    statusText.textContent = "Select a tile to place Auto Farmer on!"
+    let blur = ["opacity-50", "pointer-events-none"];
+    balanceHeader.classList.add(blur[0], blur[1]);
+    shopContainer.classList.add(blur[0], blur[1]);
+    raritiesContainer.classList.add(blur[0], blur[1]);
+    grid.classList.remove("grid");
+    grid.classList.add("hidden");
+    fakeGrid.classList.remove("hidden");
+    fakeGrid.classList.add("grid");
+
+
+    for (let i = 1; i <= 64; i++) {
+        if (selection.includes(i)) {
+            let nodeContainer = document.createElement("div");
+            nodeContainer.classList.add("nodeContainer");
+            nodeContainer.id = ("container"+i);
+            let button = document.createElement("button");
+            button.classList.add("fakeNodeButton");
+            button.id = ("node"+i);
+            let margin = document.createElement("div");
+            margin.classList.add("extraPadding", "p-1", "flex");
+            margin.id = ("margin"+i);
+
+            button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
+
+            margin.addEventListener("click", (event) => {
+                statusText.textContent = "";
+                grid.classList.add("grid");
+                grid.classList.remove("hidden");
+                fakeGrid.classList.add("hidden");
+                fakeGrid.classList.remove("grid");
+                fakeGrid.innerHTML = "";
+                balanceHeader.classList.remove(blur[0], blur[1]);
+                shopContainer.classList.remove(blur[0], blur[1]);
+                raritiesContainer.classList.remove(blur[0], blur[1]);
+
+                let marginToEdit = document.getElementById("margin"+i);
+                addAutoFarmer(marginToEdit, i);
+                autoFarmerTiles.push(i);
+                shopUpgrades.farmer.maxLevel();
+                storeData();
+            });
+
+            fakeGrid.appendChild(nodeContainer);
+            nodeContainer.appendChild(margin);
+            margin.appendChild(button);
+        } else {
+            let button = document.createElement("button");
+            button.classList.add("fakeNodeButton");
+            let margin = document.createElement("div");
+            margin.classList.add("invisiblePadding", "p-1", "flex");
+            fakeGrid.appendChild(margin);
             margin.appendChild(button);
         }
     }
@@ -538,6 +561,35 @@ function getRandomElement(arr) {
     }
     const randomIndex = Math.floor(Math.random() * arr.length);
     return arr[randomIndex];
+}
+
+function setFarmAreaOffsets(level) {
+    switch (level) {
+        case 1:
+            mouseState.farmAreaOffsets = [+1];
+            break;
+        case 2:
+            mouseState.farmAreaOffsets = [-1, +1];
+            break;
+        case 3:
+            mouseState.farmAreaOffsets = [-1, +1, -8, +8];
+            break;
+        case 4:
+            mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7];
+            break;
+        case 5:
+            mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16];
+            break;
+        case 6:
+            mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16, -10, -6, +10, +6];
+            break;
+        case 7:
+            mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16, -10, -6, +10, +6, -17, -15, +17, +15];
+            break;
+        case 8:
+            mouseState.farmAreaOffsets = [-1, +1, -8, +8, -9, -7, +9, +7, -2, +2, -16, +16, -10, -6, +10, +6, -17, -15, +17, +15, -18, -14, +18, +14];
+            break;
+    }
 }
 
 function storeData() {
