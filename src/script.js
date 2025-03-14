@@ -36,17 +36,17 @@ let mouseState = {
 let autoFarmerTiles = [];
 
 const rewards = {
-    common: { index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]" },
-    uncommon: { index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5, toastColor: "text-[#0000ff]" },
-    rare: { index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25, toastColor: "text-[#ff1493]" },
-    epic: { index: 3, rarity: "epic", colors: ["gold", "orange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100, toastColor: "text-[#cc5500]" },
-    legendary: { index: 4, rarity: "legendary", colors: ["lightsalmon", "orangered"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500, toastColor: "text-[#ff0000]" },
-    mythic: { index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000, toastColor: "text-[#4b0082]" }
+    common: { index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]", farmTime: 1 },
+    uncommon: { index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5, toastColor: "text-[#0000ff]", farmTime: 2 },
+    rare: { index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25, toastColor: "text-[#ff1493]", farmTime: 4 },
+    epic: { index: 3, rarity: "epic", colors: ["gold", "orange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100, toastColor: "text-[#cc5500]", farmTime: 8 },
+    legendary: { index: 4, rarity: "legendary", colors: ["lightsalmon", "orangered"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500, toastColor: "text-[#ff0000]", farmTime: 16 },
+    mythic: { index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000, toastColor: "text-[#4b0082]", farmTime: 32 }
 };
 
 
 let shopUpgrades = {
-    farmSpeed: { name: "Hover Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return 0.5 + (level / 5); }, cost: (level) => { return (level + 5) ** 3; }, onUpgrade: () => { } },
+    farmSpeed: { name: "Hover Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return (0.5 + (level / 5)); }, cost: (level) => { return (level + 5) ** 3; }, onUpgrade: () => { } },
     rarityTier: { name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => { return 5 }, modifier: (level) => { return level; }, cost: (level) => { return level == 0 ? 1 : (10 * level); }, onUpgrade: () => { resetColorGrid(); } },
     expansion: { name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => { return 3 }, modifier: (level) => { return level; }, cost: (level) => { return (100 * (level + 1)); }, onUpgrade: () => { resetColorGrid(); shopUpgrades.farmer.maxLevel(); populateShop(); } },
     replanting: { name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { resetColorGrid(); } },
@@ -234,6 +234,10 @@ function tilesBeingHovered() {
     return tiles;
 }
 
+function defaultFarmSpeedCalculation(color) {
+    return shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) / color.farmTime;
+}
+
 /**
  * Starts increasing the end angle of a tile at a rate determined by upgrades and auto farm tiles.
  * @param {Int} index of grid element to apply styles to
@@ -249,12 +253,12 @@ function startAngleIncrease(index, fromAutoFarmer = false) {
         let shouldDoubleFarm = (autoFarmerTiles.includes(index) && !fromAutoFarmer);
         if (shouldDoubleFarm) {
             state.endAngle += shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level)
-                + shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
+                + defaultFarmSpeedCalculation(state.currentItem);
 
         } else {
             state.endAngle += fromAutoFarmer
                 ? shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level)
-                : shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
+                : defaultFarmSpeedCalculation(state.currentItem);
         }
         doIncreaseAction(state, index);
     }, 1);
@@ -320,27 +324,30 @@ function populateRarities() {
     let rewardsTitles = document.createElement("div");
     rewardsTitles.classList.add("flex", "justify-between", "mb-2");
     raritiesContainer.appendChild(rewardsTitles)
-    let titles = ["Rarity", "Chance", "Value"];
+    let titles = ["Crop", "Farm Speed", "Chance", "Value"];
     let title = document.createElement("span");
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
         let node = title.cloneNode(true);
         node.textContent = titles[i];
-        if (i === 1) {
-            node.classList.add("basis-1/2", "text-end");
+        if (i === 0) {
+            node.classList.add("basis-2/6", "text-start");
+        } else if (i === 1) {
+            node.classList.add("basis-2/6", "text-center");
         } else if (i === 2) {
-            node.classList.add("basis-1/4", "text-end");
+            node.classList.add("basis-1/6", "text-center");
+        } else if (i === 3) {
+            node.classList.add("basis-1/6", "text-end");
         }
         rewardsTitles.appendChild(node);
     }
 
     Object.values(rewards).forEach(item => {
         if (item.index <= shopUpgrades.rarityTier.level) {
-
             let listItem = document.createElement("div");
             listItem.classList.add("flex", "flex-row", "justify-between", "mb-2");
 
             let itemGroupDiv = document.createElement("div");
-            itemGroupDiv.classList.add("flex", "basis-1/2", "self-center");
+            itemGroupDiv.classList.add("flex", "basis-2/6", "self-center");
 
             let nodeButton = document.createElement("button");
             nodeButton.classList.add("nodeButton");
@@ -350,12 +357,16 @@ function populateRarities() {
             labelDiv.classList.add("flex", "self-center", "ml-1");
             labelDiv.textContent = capitalize(item.rarity);
 
+            let speedDiv = document.createElement("div");
+            speedDiv.classList.add("flex", "basis-2/6", "justify-center", "self-center", (item.farmTime === 1) ? "text-green-700" : "text-red-500");
+            speedDiv.textContent = (item.farmTime === 1) ? "Normal" : item.farmTime + "x Slower"
+
             let chanceDiv = document.createElement("div");
-            chanceDiv.classList.add("flex", "justify-center", "self-center", "ml-3");
+            chanceDiv.classList.add("flex", "basis-1/6", "justify-center", "self-center");
             chanceDiv.textContent = item.chance[shopUpgrades.rarityTier.level] + "%";
 
             let rewardDiv = document.createElement("div");
-            rewardDiv.classList.add("flex", "basis-1/4", "justify-end", "self-center", "ml-3");
+            rewardDiv.classList.add("flex", "basis-1/6", "justify-end", "self-center");
             rewardDiv.textContent = item.bonus;
 
             let spacer = document.createElement("div");
@@ -367,6 +378,7 @@ function populateRarities() {
             itemGroupDiv.appendChild(labelDiv);
 
             listItem.appendChild(itemGroupDiv);
+            listItem.appendChild(speedDiv);
             listItem.appendChild(chanceDiv);
             listItem.appendChild(rewardDiv);
         }
