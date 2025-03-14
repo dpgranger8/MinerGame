@@ -14,6 +14,8 @@ let color2Choices = ["burlywood", "sandybrown"];
 
 let tileStates = {};
 
+let inventoryCounts = [0, 0, 0, 0, 0, 0];
+
 let _balance = 0;
 Object.defineProperty(window, "balance", {
     get: () => {
@@ -59,6 +61,7 @@ let shopUpgrades = {
     populateRarities();
     populateShop();
     populateColorGrid();
+    updateInventoryCounts();
 })();
 
 function resetColorGrid() {
@@ -285,9 +288,16 @@ function doIncreaseAction(state, index) {
     button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
     if (state.endAngle >= 360) {
         state.endAngle = 0;
-        window.balance += state.currentItem.bonus;
-        bonusToast(displayContainer, state.currentItem.bonus, true, true, state.currentItem.toastColor);
-        bonusToast(container, state.currentItem.bonus, true, false, state.currentItem.toastColor);
+        console.log(state.currentItem);
+        if (ifAutoSell(state.currentItem.index)) {
+            window.balance += state.currentItem.bonus;
+            bonusToast(displayContainer, state.currentItem.bonus, true, true, state.currentItem.toastColor);
+            bonusToast(container, state.currentItem.bonus, true, false, state.currentItem.toastColor);
+        } else {
+            colorToast(container, state.currentItem);
+            inventoryCounts[state.currentItem.index] += 1;
+            updateInventoryCounts(state.currentItem.index);
+        }
         state.currentItem = chooseRarity();
     }
 }
@@ -368,7 +378,7 @@ function populateInventory() {
 
     let inventoryTitles = document.createElement("div");
     inventoryTitles.classList.add("flex", "w-full", "justify-between", "mb-2");
-    let titles = ["Inventory", "Options"];
+    let titles = ["Inventory", "Auto-sell"];
     let title = document.createElement("span");
     for (let i = 0; i < 2; i++) {
         let node = title.cloneNode(true);
@@ -383,9 +393,10 @@ function populateInventory() {
             container.classList.add("flex", "w-full", "justify-between", "h-[30px]", "mb-2")
 
             let text = document.createElement("div");
-            text.textContent = "hello";
+            text.textContent = inventoryCounts[item.index];
+            text.id = "inventoryCount" + item.index;
 
-            let toggle = createToggle(item.index);
+            let toggle = createToggle(item.index, (item.index === 0) ? true : false);
 
             container.appendChild(text);
             container.appendChild(toggle)
@@ -533,6 +544,23 @@ function bonusToast(element, value, isBonus, isDisplay, color) {
     element.appendChild(toast);
 }
 
+function colorToast(element, item) {
+    let container = document.createElement("div");
+    container.classList.add("flex", "items-center", "bonusToast", "translate-x-0.5");
+    let toast = document.createElement("button");
+    toast.classList.add("toastNode");
+    toast.style.background = `linear-gradient(${item.colors[0]}, ${item.colors[1]}`;
+    let text = document.createElement("div");
+    text.classList.add(item.toastColor);
+    text.textContent = "+";
+
+    setTimeout(() => container.remove(), 500);
+
+    container.appendChild(text);
+    container.appendChild(toast);
+    element.appendChild(container);
+}
+
 function noBuyAnimation(button) {
     button.style.transition = "0.05s ease";
     setTimeout(() => {
@@ -635,6 +663,7 @@ function storeData() {
     localStorage.setItem("balance", window.balance);
     localStorage.setItem("autoFarmers", JSON.stringify(autoFarmerTiles));
     localStorage.setItem("statusText", statusText.textContent);
+    localStorage.setItem("inventoryCounts", JSON.stringify(inventoryCounts));
 }
 
 function retrieveData() {
@@ -651,6 +680,13 @@ function retrieveData() {
         // Any additional storage retrieval must come before the object.values statement
         let levels = JSON.parse(localStorage.getItem("levels"));
         autoFarmerTiles = JSON.parse(localStorage.getItem("autoFarmers"));
+
+        let counts = JSON.parse(localStorage.getItem("inventoryCounts"));
+        if (counts == null || counts.length === 0) {
+            inventoryCounts = [0, 0, 0, 0, 0, 0];
+        } else {
+            inventoryCounts = counts;
+        }
         let counter = 0;
         Object.values(shopUpgrades).forEach(upgrade => {
             if (upgrade.name === "Add Auto Farmer") {
@@ -680,31 +716,31 @@ function debug() {
     localStorage.removeItem("balance");
     localStorage.removeItem("autoFarmers");
     localStorage.removeItem("statusText");
+    localStorage.removeItem("inventoryCounts");
     location.reload();
 }
 
-function createToggle(id) {
+function createToggle(id, initialState = false) {
     const label = document.createElement('label');
-    label.classList.add('flex', 'items-center', 'cursor-pointer', 'select-none', 'text-dark');
-    label
+    label.classList.add('flex', 'cursor-pointer', 'select-none', 'text-dark');
 
     const divWrapper = document.createElement('div');
     divWrapper.classList.add('relative');
 
     const input = document.createElement('input');
     input.type = 'checkbox';
-    input.id = id;
+    input.id = "toggle" + id;
     input.classList.add('peer', 'sr-only');
+    input.checked = initialState;
 
     const divBlock = document.createElement('div');
-    divBlock.classList.add('block', 'h-8', 'rounded-full', 'box', 'bg-blue-100', 'w-14');
-    divBlock.classList.add('peer-checked:bg-primary');
+    divBlock.classList.add('block', 'h-6', 'rounded-full', 'box', 'bg-blue-100', 'w-10');
+    divBlock.classList.add('peer-checked:bg-green-100');
 
     const dotDiv = document.createElement('div');
-    dotDiv.classList.add('absolute', 'flex', 'items-center', 'justify-center', 'w-6', 'h-6', 'transition', 'bg-blue-500', 'rounded-full', 'dot', 'left-1', 'top-1');
-    dotDiv.classList.add('peer-checked:translate-x-full', 'peer-checked:dark:bg-blue-400');
-
-    // Appending child elements
+    dotDiv.classList.add('absolute', 'flex', 'items-center', 'justify-center', 'w-4', 'h-4', 'transition', 'bg-blue-400', 'rounded-full', 'dot', 'left-1', 'top-1');
+    dotDiv.classList.add('peer-checked:translate-x-full', 'peer-checked:bg-green-500');
+    
     divWrapper.appendChild(input);
     divWrapper.appendChild(divBlock);
     divWrapper.appendChild(dotDiv);
@@ -714,9 +750,27 @@ function createToggle(id) {
     return label;
 }
 
+function updateInventoryCounts(value = null) {
+    if (value != null) {
+        Object.values(rewards).forEach(item => {
+            if (item.index <= shopUpgrades.rarityTier.level) {
+                const countDisplayElement = document.getElementById("inventoryCount" + item.index);
+                countDisplayElement.textContent = inventoryCounts[item.index];
+            }
+        })
+    } else {
+        const countDisplayElement = document.getElementById("inventoryCount" + value);
+        countDisplayElement.textContent = inventoryCounts[value];
+    }
+}
 
-/*
-function customButton(text, onClick) {
+function ifAutoSell(index) {
+    console.log(index);
+    const toggle = document.getElementById("toggle" + index);
+    return toggle.checked;
+}
+
+function customSellButton(text, onClick) {
     const button = document.createElement("a");
     
     button.className = "rounded relative inline-flex group items-center justify-center cursor-pointer border-b-4 border-l-2 active:border-violet-500 active:shadow-none shadow-lg bg-violet-500 border-violet-600 text-white hover:brightness-125 select-none";
@@ -732,4 +786,4 @@ function customButton(text, onClick) {
     }
     
     return button;
-}*/
+}
