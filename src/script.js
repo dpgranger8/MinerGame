@@ -294,7 +294,7 @@ function doIncreaseAction(state, index) {
             bonusToast(container, state.currentItem.bonus, true, state.currentItem.toastColor);
         } else {
             colorToast(container, state.currentItem);
-            bonusToast(document.getElementById("inventoryContainer" + state.currentItem.index), 1, true, state.currentItem.toastColor);
+            bonusToast(getInventoryContainer(state.currentItem.index), 1, true, state.currentItem.toastColor);
             inventoryCounts[state.currentItem.index] += 1;
             updateInventoryCounts(state.currentItem.index);
         }
@@ -400,10 +400,32 @@ function populateInventory() {
             let toggle = createToggle(item.index, (item.index === 0) ? true : false);
 
             container.appendChild(text);
-            container.appendChild(toggle)
+            container.appendChild(customSellButton("Sell 1", () => {sellColors(item.index, 1)}))
+            container.appendChild(toggle);
             inventory.appendChild(container);
         }
     })
+}
+
+function sellColors(index, count) {
+    if (inventoryCounts[index] > 0) {
+        inventoryCounts[index] -= count;
+        updateInventoryCounts(index);
+        let rarity = getRarityByIndex(index);
+        window.balance += rarity.bonus;
+        bonusToast(displayContainer, rarity.bonus, true, rarity.toastColor)
+        bonusToast(getInventoryContainer(index), 1, false)
+    } else {
+        //Cant sell 0 items
+    }
+}
+
+function getRarityByIndex(index) {
+    return Object.values(rewards).find(value => {return value.index === index})
+}
+
+function getInventoryContainer(index) {
+    return document.getElementById("inventoryContainer" + index)
 }
 
 function populateShop() {
@@ -517,7 +539,7 @@ function chooseRarity() {
  * @param {HTMLElement} element the toast will appear above this
  * @param {Int} value 
  * @param {Boolean} isBonus whether the toast is a bonus
- * @param {String} color the toast will show up as in Tailwind text-[#hex] format
+ * @param {String} color color the toast will show up as in Tailwind text-[#hex] format
  */
 
 function bonusToast(element, value, isBonus, color) {
@@ -756,8 +778,8 @@ function createToggle(id, initialState = false) {
     return label;
 }
 
-function updateInventoryCounts(value = null) {
-    if (value === null) {
+function updateInventoryCounts(index = null) {
+    if (index === null) {
         Object.values(rewards).forEach(item => {
             if (item.index <= shopUpgrades.rarityTier.level) {
                 const countDisplayElement = document.getElementById("inventoryCount" + item.index);
@@ -765,8 +787,8 @@ function updateInventoryCounts(value = null) {
             }
         })
     } else {
-        const countDisplayElement = document.getElementById("inventoryCount" + value);
-        countDisplayElement.textContent = inventoryCounts[value];
+        const countDisplayElement = document.getElementById("inventoryCount" + index);
+        countDisplayElement.textContent = inventoryCounts[index];
     }
 }
 
