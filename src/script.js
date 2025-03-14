@@ -49,7 +49,7 @@ let shopUpgrades = {
     farmSpeed: { name: "Hover Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return (0.5 + (level / 5)); }, cost: (level) => { return (level + 5) ** 3; }, onUpgrade: () => { } },
     rarityTier: { name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => { return 5 }, modifier: (level) => { return level; }, cost: (level) => { return level == 0 ? 1 : (10 * level); }, onUpgrade: () => { resetColorGrid(); } },
     expansion: { name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => { return 3 }, modifier: (level) => { return level; }, cost: (level) => { return (100 * (level + 1)); }, onUpgrade: () => { resetColorGrid(); shopUpgrades.farmer.maxLevel(); populateShop(); } },
-    replanting: { name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { resetColorGrid(); } },
+    replanting: { name: "Re-seed Farm Colors", image: "src/images/replanting.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { resetColorGrid(); } },
     farmer: { name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => { return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { placeBuilding(); } },
     autoFarmerSpeed: { name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return Number((0.1 + (level / 10)).toFixed(1)); }, cost: (level) => { return (level + 1) ** 4; }, onUpgrade: () => { } },
     //multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => {}},
@@ -93,7 +93,7 @@ function populateColorGrid() {
             button.classList.add("nodeButton");
             button.id = ("node" + i);
             let margin = document.createElement("div");
-            margin.classList.add("extraPadding", "p-1", "flex");
+            margin.classList.add("extraPadding", "p-0.75", "flex");
             margin.id = ("margin" + i);
 
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
@@ -155,7 +155,7 @@ function placeBuilding() {
             button.classList.add("fakeNodeButton");
             button.id = ("node" + i);
             let margin = document.createElement("div");
-            margin.classList.add("extraPadding", "p-1", "flex");
+            margin.classList.add("extraPadding", "p-0.75", "flex");
             margin.id = ("margin" + i);
 
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
@@ -234,8 +234,8 @@ function tilesBeingHovered() {
     return tiles;
 }
 
-function defaultFarmSpeedCalculation(color) {
-    return shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) / color.farmTime;
+function farmSpeedCalculation(color, autoFarmer = false) {
+    return autoFarmer ? (shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level) / color.farmTime) : (shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) / color.farmTime);
 }
 
 /**
@@ -252,13 +252,12 @@ function startAngleIncrease(index, fromAutoFarmer = false) {
     state.interval = setInterval(() => {
         let shouldDoubleFarm = (autoFarmerTiles.includes(index) && !fromAutoFarmer);
         if (shouldDoubleFarm) {
-            state.endAngle += shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level)
-                + defaultFarmSpeedCalculation(state.currentItem);
-
+            state.endAngle += farmSpeedCalculation(state.currentItem, true)
+                + farmSpeedCalculation(state.currentItem);
         } else {
             state.endAngle += fromAutoFarmer
-                ? shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level)
-                : defaultFarmSpeedCalculation(state.currentItem);
+                ? farmSpeedCalculation(state.currentItem, true)
+                : farmSpeedCalculation(state.currentItem);
         }
         doIncreaseAction(state, index);
     }, 1);
@@ -453,7 +452,7 @@ function populateShop() {
         toolTip.classList.add("toolTip", "absolute", "z-1", "rounded-md", "p-5", "bg-gray-300/45", "backdrop-blur-sm", "flex", "flex-col", "items-center", "border-1");
 
         let title = document.createElement("div");
-        title.classList.add("w-7/8");
+        title.classList.add("w-7/8", "whitespace-nowrap");
         title.textContent = item.name + " " + (item.level + 1);
 
         let rowItem = document.createElement("div");

@@ -731,9 +731,6 @@
   .ml-1 {
     margin-left: calc(var(--spacing) * 1);
   }
-  .ml-3 {
-    margin-left: calc(var(--spacing) * 3);
-  }
   .box-border {
     box-sizing: border-box;
   }
@@ -911,23 +908,8 @@
   .grow {
     flex-grow: 1;
   }
-  .basis-1\/2 {
-    flex-basis: calc(1/2 * 100%);
-  }
-  .basis-1\/3 {
-    flex-basis: calc(1/3 * 100%);
-  }
-  .basis-1\/4 {
-    flex-basis: calc(1/4 * 100%);
-  }
-  .basis-1\/5 {
-    flex-basis: calc(1/5 * 100%);
-  }
   .basis-1\/6 {
     flex-basis: calc(1/6 * 100%);
-  }
-  .basis-2\/5 {
-    flex-basis: calc(2/5 * 100%);
   }
   .basis-2\/6 {
     flex-basis: calc(2/6 * 100%);
@@ -1893,6 +1875,9 @@
   .object-top {
     object-position: top;
   }
+  .p-0\.75 {
+    padding: calc(var(--spacing) * 0.75);
+  }
   .p-1 {
     padding: calc(var(--spacing) * 1);
   }
@@ -2069,14 +2054,8 @@
   .text-blue-500 {
     color: var(--color-blue-500);
   }
-  .text-green-500 {
-    color: var(--color-green-500);
-  }
   .text-green-700 {
     color: var(--color-green-700);
-  }
-  .text-green-900 {
-    color: var(--color-green-900);
   }
   .text-red-500 {
     color: var(--color-red-500);
@@ -2651,11 +2630,11 @@ button.fakeNodeButton {
 }
 .extraPadding {
   display: flex;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   border-radius: 10px;
 }
 .extraPadding:hover, .hover {
-  border: 1px solid white;
+  border: 2px solid white;
   border-radius: 0px;
 }
 .autoFarmer {
@@ -2669,7 +2648,7 @@ button.fakeNodeButton {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: repeating-conic-gradient(white 0deg 90deg, black 90deg 180deg);
+  background: repeating-conic-gradient( white 0deg 60deg, black 60deg 120deg, white 120deg 180deg, black 180deg 240deg, white 240deg 300deg, black 300deg 360deg);
   animation: rotateBackground 3s linear infinite;
 }
 .invisiblePadding {

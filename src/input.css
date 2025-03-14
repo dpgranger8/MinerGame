@@ -58,12 +58,12 @@ button.fakeNodeButton {
 
 .extraPadding {
     display: flex;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     border-radius: 10px;
 }
 
 .extraPadding:hover, .hover {
-    border: 1px solid white;
+    border: 2px solid white;
     border-radius: 0px;
 }
 
@@ -79,7 +79,14 @@ button.fakeNodeButton {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: repeating-conic-gradient(white 0deg 90deg, black 90deg 180deg);
+    background: repeating-conic-gradient(
+            white 0deg 60deg,
+            black 60deg 120deg,
+            white 120deg 180deg,
+            black 180deg 240deg,
+            white 240deg 300deg,
+            black 300deg 360deg);
+
     animation: rotateBackground 3s linear infinite;
 }
 
@@ -127,12 +134,8 @@ button.fakeNodeButton {
 }
 
 @keyframes rotateBackground {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    from {transform: rotate(0deg);}
+    to {transform: rotate(360deg);}
 }
 
 @keyframes moveUp {
