@@ -7,6 +7,7 @@ const raritiesContainer = document.getElementById("rewards");
 const shopContainer = document.getElementById("shopContainer");
 const statusText = document.getElementById("statusText");
 const balanceHeader = document.getElementById("balance");
+const inventory = document.getElementById("inventory");
 
 let color1Choices = ["moccasin", "navajowhite"];
 let color2Choices = ["burlywood", "sandybrown"];
@@ -33,23 +34,24 @@ let mouseState = {
 let autoFarmerTiles = [];
 
 const rewards = {
-    common: {index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]"},
-    uncommon: {index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5, toastColor: "text-[#0000ff]"},
-    rare: {index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25, toastColor: "text-[#ff1493]"},
-    epic: {index: 3, rarity: "epic", colors: ["gold", "orange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100, toastColor: "text-[#cc5500]"},
-    legendary: {index: 4, rarity: "legendary",  colors: ["lightsalmon", "orangered"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500, toastColor: "text-[#ff0000]"},
-    mythic: {index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000, toastColor: "text-[#4b0082]"}
+    common: { index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]" },
+    uncommon: { index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5, toastColor: "text-[#0000ff]" },
+    rare: { index: 2, rarity: "rare", colors: ["pink", "hotpink"], chance: [0, 0, 6, 6, 6, 6], bonus: 25, toastColor: "text-[#ff1493]" },
+    epic: { index: 3, rarity: "epic", colors: ["gold", "orange"], chance: [0, 0, 0, 1.5, 1.5, 1.5], bonus: 100, toastColor: "text-[#cc5500]" },
+    legendary: { index: 4, rarity: "legendary", colors: ["lightsalmon", "orangered"], chance: [0, 0, 0, 0, 0.49, 0.49], bonus: 500, toastColor: "text-[#ff0000]" },
+    mythic: { index: 5, rarity: "mythic", colors: ["ghostwhite", "gainsboro"], chance: [0, 0, 0, 0, 0, 0.01], bonus: 10000, toastColor: "text-[#4b0082]" }
 };
 
+
 let shopUpgrades = {
-    farmSpeed: {name: "Hover Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return 0.5 + (level / 5);}, cost: (level) => {return (level + 5) ** 3;}, onUpgrade: () => {}},
-    rarityTier: {name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => {return 5}, modifier: (level) => {return  level;}, cost: (level) => {return level == 0 ? 1 : (10 * level);}, onUpgrade: () => {resetColorGrid();}},
-    expansion: {name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => {return 3}, modifier: (level) => {return  level;}, cost: (level) => {return (100 * (level + 1));}, onUpgrade: () => {resetColorGrid(); shopUpgrades.farmer.maxLevel(); populateShop();}},
-    replanting: {name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {resetColorGrid();}},
-    farmer: {name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length}, modifier: (level) => {return level;}, cost: (level) => {return (level + 1) ** 2;}, onUpgrade: () => {placeBuilding();}},
-    autoFarmerSpeed: {name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return Number((0.1 + (level / 10)).toFixed(1));}, cost: (level) => {return (level + 1) ** 4;}, onUpgrade: () => {}},
-    multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => {}},
-    hoverArea: {name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => {return 8}, modifier: (level) => {return level;}, cost: (level) => {return 10 ** (level + 1);}, onUpgrade: (level) => {setFarmAreaOffsets(shopUpgrades.hoverArea.level)}}
+    farmSpeed: { name: "Hover Farm Speed", image: "src/images/rake.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return 0.5 + (level / 5); }, cost: (level) => { return (level + 5) ** 3; }, onUpgrade: () => { } },
+    rarityTier: { name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => { return 5 }, modifier: (level) => { return level; }, cost: (level) => { return level == 0 ? 1 : (10 * level); }, onUpgrade: () => { resetColorGrid(); } },
+    expansion: { name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => { return 3 }, modifier: (level) => { return level; }, cost: (level) => { return (100 * (level + 1)); }, onUpgrade: () => { resetColorGrid(); shopUpgrades.farmer.maxLevel(); populateShop(); } },
+    replanting: { name: "Re-seed Farm", image: "src/images/replanting.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { resetColorGrid(); } },
+    farmer: { name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => { return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { placeBuilding(); } },
+    autoFarmerSpeed: { name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return Number((0.1 + (level / 10)).toFixed(1)); }, cost: (level) => { return (level + 1) ** 4; }, onUpgrade: () => { } },
+    //multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => {}},
+    hoverArea: { name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => { return 8 }, modifier: (level) => { return level; }, cost: (level) => { return 10 ** (level + 1); }, onUpgrade: (level) => { setFarmAreaOffsets(shopUpgrades.hoverArea.level) } }
 };
 
 (() => {
@@ -83,13 +85,13 @@ function populateColorGrid() {
         if (getSquareSelection(shopUpgrades.expansion.level + 1).includes(i)) {
             let nodeContainer = document.createElement("div");
             nodeContainer.classList.add("nodeContainer");
-            nodeContainer.id = ("container"+i);
+            nodeContainer.id = ("container" + i);
             let button = document.createElement("button");
             button.classList.add("nodeButton");
-            button.id = ("node"+i);
+            button.id = ("node" + i);
             let margin = document.createElement("div");
             margin.classList.add("extraPadding", "p-1", "flex");
-            margin.id = ("margin"+i);
+            margin.id = ("margin" + i);
 
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
@@ -145,13 +147,13 @@ function placeBuilding() {
         if (selection.includes(i)) {
             let nodeContainer = document.createElement("div");
             nodeContainer.classList.add("nodeContainer");
-            nodeContainer.id = ("container"+i);
+            nodeContainer.id = ("container" + i);
             let button = document.createElement("button");
             button.classList.add("fakeNodeButton");
-            button.id = ("node"+i);
+            button.id = ("node" + i);
             let margin = document.createElement("div");
             margin.classList.add("extraPadding", "p-1", "flex");
-            margin.id = ("margin"+i);
+            margin.id = ("margin" + i);
 
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
@@ -166,7 +168,7 @@ function placeBuilding() {
                 shopContainer.classList.remove(blur[0], blur[1]);
                 raritiesContainer.classList.remove(blur[0], blur[1]);
 
-                let marginToEdit = document.getElementById("margin"+i);
+                let marginToEdit = document.getElementById("margin" + i);
                 addAutoFarmer(marginToEdit, i);
                 autoFarmerTiles.push(i);
                 shopUpgrades.farmer.maxLevel();
@@ -203,7 +205,7 @@ function hoverOtherTiles(add) {
         let isSecondColumn = (mouseState.whichTile % 8 == 2) && (whichColumnTheOffsetIsOn === 6)
         let isSecondToLastColumn = (mouseState.whichTile % 8 == 7) && (whichColumnTheOffsetIsOn === 2)
         let isLastColumn = (mouseState.whichTile % 8 == 0) && (whichColumnTheOffsetIsOn < 3 && whichColumnTheOffsetIsOn != 0)
-        
+
         if (isFirstColumn || isSecondColumn || isSecondToLastColumn || isLastColumn) {
             continue;
         }
@@ -244,11 +246,11 @@ function startAngleIncrease(index, fromAutoFarmer = false) {
         let shouldDoubleFarm = (autoFarmerTiles.includes(index) && !fromAutoFarmer);
         if (shouldDoubleFarm) {
             state.endAngle += shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level)
-                            + shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
-                              
+                + shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
+
         } else {
-            state.endAngle += fromAutoFarmer 
-                ? shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level) 
+            state.endAngle += fromAutoFarmer
+                ? shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level)
                 : shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level);
         }
         doIncreaseAction(state, index);
@@ -278,8 +280,8 @@ function startAngleDecrease(index) {
 }
 
 function doIncreaseAction(state, index) {
-    let container = document.getElementById("container"+index);
-    let button = document.getElementById("node"+index);
+    let container = document.getElementById("container" + index);
+    let button = document.getElementById("node" + index);
     button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
     if (state.endAngle >= 360) {
         state.endAngle = 0;
@@ -291,7 +293,7 @@ function doIncreaseAction(state, index) {
 }
 
 function doDecreaseAction(state, index) {
-    let button = document.getElementById("node"+index);
+    let button = document.getElementById("node" + index);
     button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
     if (state.endAngle <= 0) {
         state.endAngle = 0;
@@ -303,42 +305,47 @@ function doDecreaseAction(state, index) {
 
 function populateRarities() {
     raritiesContainer.innerHTML = "";
+    populateInventory();
 
     let rewardsTitles = document.createElement("div");
-    rewardsTitles.classList.add("flex", "justify-between", "mb-5");
+    rewardsTitles.classList.add("flex", "justify-between", "mb-2");
     raritiesContainer.appendChild(rewardsTitles)
-    let titles = ["Rarity", "Chance", "Bonus"];
+    let titles = ["Rarity", "Chance", "Value"];
     let title = document.createElement("span");
     for (let i = 0; i < 3; i++) {
         let node = title.cloneNode(true);
         node.textContent = titles[i];
+        if (i === 1) {
+            node.classList.add("basis-1/2", "text-end");
+        } else if (i === 2) {
+            node.classList.add("basis-1/4", "text-end");
+        }
         rewardsTitles.appendChild(node);
     }
 
-    for (let key in rewards) {
-        let item = rewards[key];
+    Object.values(rewards).forEach(item => {
         if (item.index <= shopUpgrades.rarityTier.level) {
-            
+
             let listItem = document.createElement("div");
             listItem.classList.add("flex", "flex-row", "justify-between", "mb-2");
 
             let itemGroupDiv = document.createElement("div");
-            itemGroupDiv.classList.add("flex", "basis-1/3", "self-center");
+            itemGroupDiv.classList.add("flex", "basis-1/2", "self-center");
 
             let nodeButton = document.createElement("button");
             nodeButton.classList.add("nodeButton");
             nodeButton.style.background = `linear-gradient(${item.colors[0]}, ${item.colors[1]}`;
 
             let labelDiv = document.createElement("div");
-            labelDiv.classList.add("flex", "self-center", "ml-3");
+            labelDiv.classList.add("flex", "self-center", "ml-1");
             labelDiv.textContent = capitalize(item.rarity);
 
             let chanceDiv = document.createElement("div");
-            chanceDiv.classList.add("flex", "justify-center",  "self-center", "ml-3");
+            chanceDiv.classList.add("flex", "justify-center", "self-center", "ml-3");
             chanceDiv.textContent = item.chance[shopUpgrades.rarityTier.level] + "%";
 
             let rewardDiv = document.createElement("div");
-            rewardDiv.classList.add("flex", "basis-1/3", "justify-end", "self-center", "ml-3");
+            rewardDiv.classList.add("flex", "basis-1/4", "justify-end", "self-center", "ml-3");
             rewardDiv.textContent = item.bonus;
 
             let spacer = document.createElement("div");
@@ -353,7 +360,38 @@ function populateRarities() {
             listItem.appendChild(chanceDiv);
             listItem.appendChild(rewardDiv);
         }
+    })
+}
+
+function populateInventory() {
+    inventory.innerHTML = "";
+
+    let inventoryTitles = document.createElement("div");
+    inventoryTitles.classList.add("flex", "w-full", "justify-between", "mb-2");
+    let titles = ["Inventory", "Options"];
+    let title = document.createElement("span");
+    for (let i = 0; i < 2; i++) {
+        let node = title.cloneNode(true);
+        node.textContent = titles[i];
+        inventoryTitles.appendChild(node);
     }
+    inventory.appendChild(inventoryTitles);
+
+    Object.values(rewards).forEach(item => {
+        if (item.index <= shopUpgrades.rarityTier.level) {
+            let container = document.createElement("div");
+            container.classList.add("flex", "w-full", "justify-between", "h-[30px]", "mb-2")
+
+            let text = document.createElement("div");
+            text.textContent = "hello";
+
+            let toggle = createToggle(item.index);
+
+            container.appendChild(text);
+            container.appendChild(toggle)
+            inventory.appendChild(container);
+        }
+    })
 }
 
 function populateShop() {
@@ -383,7 +421,7 @@ function populateShop() {
         let cost = document.createElement("div");
         cost.classList.add("flex");
         cost.textContent = "Cost:";
-        
+
         let costLabel = document.createElement("div");
         costLabel.classList.add("flex", "text-red-500")
         costLabel.textContent = item.cost(item.level).toLocaleString();
@@ -453,7 +491,7 @@ function populateShop() {
 function chooseRarity() {
     let num = getRandomInt(1, 10000);
     let threshold = 0;
-    
+
     for (let key of Object.keys(rewards)) {
         threshold += rewards[key].chance[shopUpgrades.rarityTier.level] * 100;
         if (num <= threshold) {
@@ -523,24 +561,24 @@ function getSquareSelection(index) {
     if (index < 1 || index > 4) {
         throw new Error("Index must be between 1 and 4");
     }
-    
+
     const gridSize = 8;
     const sizes = [2, 4, 6, 8]; // Corresponding square sizes for index 1-4
     const size = sizes[index - 1];
-    
+
     // Calculate the starting position for centering
     const startRow = Math.floor((gridSize - size) / 2);
     const startCol = Math.floor((gridSize - size) / 2);
-    
+
     let selectedNumbers = [];
-    
+
     for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
             let number = (startRow + r) * gridSize + (startCol + c) + 1;
             selectedNumbers.push(number);
         }
     }
-    
+
     return selectedNumbers;
 }
 
@@ -550,14 +588,14 @@ function getRandomInt(min, max) {
 
 function capitalize(str) {
     if (!str) {
-      return "";
+        return "";
     }
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function getRandomElement(arr) {
     if (!Array.isArray(arr) || arr.length === 0) {
-      return undefined;
+        return undefined;
     }
     const randomIndex = Math.floor(Math.random() * arr.length);
     return arr[randomIndex];
@@ -644,3 +682,54 @@ function debug() {
     localStorage.removeItem("statusText");
     location.reload();
 }
+
+function createToggle(id) {
+    const label = document.createElement('label');
+    label.classList.add('flex', 'items-center', 'cursor-pointer', 'select-none', 'text-dark');
+    label
+
+    const divWrapper = document.createElement('div');
+    divWrapper.classList.add('relative');
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = id;
+    input.classList.add('peer', 'sr-only');
+
+    const divBlock = document.createElement('div');
+    divBlock.classList.add('block', 'h-8', 'rounded-full', 'box', 'bg-blue-100', 'w-14');
+    divBlock.classList.add('peer-checked:bg-primary');
+
+    const dotDiv = document.createElement('div');
+    dotDiv.classList.add('absolute', 'flex', 'items-center', 'justify-center', 'w-6', 'h-6', 'transition', 'bg-blue-500', 'rounded-full', 'dot', 'left-1', 'top-1');
+    dotDiv.classList.add('peer-checked:translate-x-full', 'peer-checked:dark:bg-blue-400');
+
+    // Appending child elements
+    divWrapper.appendChild(input);
+    divWrapper.appendChild(divBlock);
+    divWrapper.appendChild(dotDiv);
+
+    label.appendChild(divWrapper);
+
+    return label;
+}
+
+
+/*
+function customButton(text, onClick) {
+    const button = document.createElement("a");
+    
+    button.className = "rounded relative inline-flex group items-center justify-center cursor-pointer border-b-4 border-l-2 active:border-violet-500 active:shadow-none shadow-lg bg-violet-500 border-violet-600 text-white hover:brightness-125 select-none";
+    
+    const spanText = document.createElement("span");
+    spanText.className = "relative w-full active:translate-y-0.25 active:-translate-x-0.25 px-3.5 py-1.5";
+    spanText.textContent = text;
+    
+    button.appendChild(spanText);
+    
+    if (typeof onClick === "function") {
+        button.addEventListener("click", onClick);
+    }
+    
+    return button;
+}*/
