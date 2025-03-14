@@ -288,13 +288,13 @@ function doIncreaseAction(state, index) {
     button.style.background = `conic-gradient(${state.currentItem.colors[0]} 0deg, ${state.currentItem.colors[1]} ${state.endAngle}deg, ${state.gradientUnsetLight} ${state.endAngle}deg, ${state.gradientUnsetDark} 360deg)`;
     if (state.endAngle >= 360) {
         state.endAngle = 0;
-        console.log(state.currentItem);
         if (ifAutoSell(state.currentItem.index)) {
             window.balance += state.currentItem.bonus;
-            bonusToast(displayContainer, state.currentItem.bonus, true, true, state.currentItem.toastColor);
-            bonusToast(container, state.currentItem.bonus, true, false, state.currentItem.toastColor);
+            bonusToast(displayContainer, state.currentItem.bonus, true, state.currentItem.toastColor);
+            bonusToast(container, state.currentItem.bonus, true, state.currentItem.toastColor);
         } else {
             colorToast(container, state.currentItem);
+            bonusToast(document.getElementById("inventoryContainer" + state.currentItem.index), 1, true, state.currentItem.toastColor);
             inventoryCounts[state.currentItem.index] += 1;
             updateInventoryCounts(state.currentItem.index);
         }
@@ -391,6 +391,7 @@ function populateInventory() {
         if (item.index <= shopUpgrades.rarityTier.level) {
             let container = document.createElement("div");
             container.classList.add("flex", "w-full", "justify-between", "h-[30px]", "mb-2")
+            container.id = "inventoryContainer" + item.index;
 
             let text = document.createElement("div");
             text.textContent = inventoryCounts[item.index];
@@ -516,20 +517,22 @@ function chooseRarity() {
  * @param {HTMLElement} element the toast will appear above this
  * @param {Int} value 
  * @param {Boolean} isBonus whether the toast is a bonus
- * @param {Boolean} isDisplay whether the toast will appear above the display
+ * @param {String} color the toast will show up as in Tailwind text-[#hex] format
  */
 
-function bonusToast(element, value, isBonus, isDisplay, color) {
+function bonusToast(element, value, isBonus, color) {
     // I am so sorry to anyone who has to read this its a mess
     let toast = document.createElement("div");
     toast.textContent = (isBonus ? "+" : "-") + parseInt(value).toLocaleString();
     let translateXStrings = ["-translate-x-7", "-translate-x-6", "-translate-x-5", "-translate-x-4", "-translate-x-3", "-translate-x-2", "-translate-x-1", "translate-x-0", "translate-x-1", "translate-x-2", "translate-x-3", "translate-x-4", "translate-x-5", "translate-x-6", "translate-x-7"];
     let translateYStrings = ["-translate-y-8", "-translate-y-7", "-translate-y-6"]
+    let closerYStrings = ["translate-y-1", "translate-y-0", "-translate-y-1"]
+    let closerXStrings = ["-translate-x-4", "-translate-x-3", "-translate-x-2", "-translate-x-1", "translate-x-0", "translate-x-1", "translate-x-2", "translate-x-3", "translate-x-4"];
     let translateBottomYStrings = ["-translate-y-6", "-translate-y-5", "-translate-y-4"]
     let selectedColor = isBonus ? color : "text-[#ff0000]";
     let isBonusOrMinus = isBonus ? "bonusToast" : "minusToast";
     toast.classList.add(isBonusOrMinus, selectedColor);
-    if (isDisplay) {
+    if (element.id.includes("display")) {
         if (isBonus) {
             toast.classList.add("transform", getRandomElement(translateYStrings), getRandomElement(translateXStrings));
             setTimeout(() => toast.remove(), getRandomInt(200, 500));
@@ -537,6 +540,9 @@ function bonusToast(element, value, isBonus, isDisplay, color) {
             toast.classList.add("transform", getRandomElement(translateBottomYStrings), getRandomElement(translateXStrings));
             setTimeout(() => toast.remove(), 500);
         }
+    } else if (element.id.includes("inventory")) {
+        toast.classList.add("transform", getRandomElement(closerYStrings), getRandomElement(closerXStrings));
+        setTimeout(() => toast.remove(), getRandomInt(200, 500));
     } else {
         toast.classList.add("translate-x-1");
         setTimeout(() => toast.remove(), 500);
@@ -751,7 +757,7 @@ function createToggle(id, initialState = false) {
 }
 
 function updateInventoryCounts(value = null) {
-    if (value != null) {
+    if (value === null) {
         Object.values(rewards).forEach(item => {
             if (item.index <= shopUpgrades.rarityTier.level) {
                 const countDisplayElement = document.getElementById("inventoryCount" + item.index);
@@ -765,7 +771,6 @@ function updateInventoryCounts(value = null) {
 }
 
 function ifAutoSell(index) {
-    console.log(index);
     const toggle = document.getElementById("toggle" + index);
     return toggle.checked;
 }

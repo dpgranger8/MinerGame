@@ -1006,6 +1006,10 @@
     --tw-translate-x: calc(var(--spacing) * -7);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
+  .-translate-y-1 {
+    --tw-translate-y: calc(var(--spacing) * -1);
+    translate: var(--tw-translate-x) var(--tw-translate-y);
+  }
   .-translate-y-4 {
     --tw-translate-y: calc(var(--spacing) * -4);
     translate: var(--tw-translate-x) var(--tw-translate-y);
@@ -1060,6 +1064,14 @@
   }
   .translate-x-7 {
     --tw-translate-x: calc(var(--spacing) * 7);
+    translate: var(--tw-translate-x) var(--tw-translate-y);
+  }
+  .translate-y-0 {
+    --tw-translate-y: calc(var(--spacing) * 0);
+    translate: var(--tw-translate-x) var(--tw-translate-y);
+  }
+  .translate-y-1 {
+    --tw-translate-y: calc(var(--spacing) * 1);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
   .-translate-z-px {
@@ -2035,6 +2047,9 @@
   }
   .text-\[\#ff1493\] {
     color: #ff1493;
+  }
+  .text-\[\#hex\] {
+    color: #hex;
   }
   .text-blue-500 {
     color: var(--color-blue-500);
