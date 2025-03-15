@@ -234,8 +234,8 @@ function tilesBeingHovered() {
     return tiles;
 }
 
-function farmSpeedCalculation(color, autoFarmer = false) {
-    return autoFarmer ? (shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level) / color.farmTime) : (shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) / color.farmTime);
+function farmSpeedCalculation(item, autoFarmer = false) {
+    return autoFarmer ? (shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level) / item.farmTime) : (shopUpgrades.farmSpeed.modifier(shopUpgrades.farmSpeed.level) / item.farmTime);
 }
 
 /**
@@ -275,7 +275,7 @@ function startAngleDecrease(index) {
         state.interval = undefined;
         state.interval = setInterval(() => {
             if (autoFarmerTiles.includes(index)) {
-                state.endAngle += shopUpgrades.autoFarmerSpeed.modifier(shopUpgrades.autoFarmerSpeed.level);
+                state.endAngle += farmSpeedCalculation(state.currentItem, true)
                 doIncreaseAction(state, index);
             } else {
                 state.endAngle -= .1;
@@ -368,9 +368,6 @@ function populateRarities() {
             rewardDiv.classList.add("flex", "basis-1/6", "justify-end", "self-center");
             rewardDiv.textContent = item.bonus;
 
-            let spacer = document.createElement("div");
-            spacer.classList.add("flex-grow");
-
             raritiesContainer.appendChild(listItem);
 
             itemGroupDiv.appendChild(nodeButton);
@@ -388,7 +385,7 @@ function populateInventory() {
     inventory.innerHTML = "";
 
     let inventoryTitles = document.createElement("div");
-    inventoryTitles.classList.add("flex", "w-full", "justify-between", "mb-2");
+    inventoryTitles.classList.add("flex", "w-full", "justify-between", "mb-1.5");
     let titles = ["Inventory", "Auto-sell"];
     let title = document.createElement("span");
     for (let i = 0; i < 2; i++) {
@@ -401,17 +398,48 @@ function populateInventory() {
     Object.values(rewards).forEach(item => {
         if (item.index <= shopUpgrades.rarityTier.level) {
             let container = document.createElement("div");
-            container.classList.add("flex", "w-full", "justify-between", "h-[30px]", "mb-2")
+            container.classList.add("flex", "w-full", "h-[30px]", "mb-2")
             container.id = "inventoryContainer" + item.index;
 
             let text = document.createElement("div");
+            text.classList.add("flex-grow")
             text.textContent = inventoryCounts[item.index];
             text.id = "inventoryCount" + item.index;
 
             let toggle = createToggle(item.index, (item.index === 0) ? true : false);
 
+            let input = document.createElement("input");
+            input.className = "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            input.classList.add("flex", "w-[100px]", "text-center", "border", "rounded", "border-gray-500", "mr-5")
+            input.id = "quantityInput" + item.index;
+            input.placeholder = "count";
+            input.value = 1;
+            input.type = "number";
+            input.min = 1;
+            input.addEventListener("input", (event) => {
+                event.target.value = Math.max(0, Math.floor(event.target.value || 0));
+            
+                let index = input.id.replace("quantityInput", "");
+                let sellButton = document.getElementById("sell" + index);
+            
+                sellButton.innerHTML = "";
+                sellButton.appendChild(sellButtonText("Sell " + event.target.value));
+
+                sellButton.replaceWith(sellButton.cloneNode(true));
+                sellButton = document.getElementById("sell" + index);
+            
+                sellButton.addEventListener("click", () => {
+                    return sellColors(item.index, event.target.value);
+                });
+            });
+            
+
+            let sellButtonOptions = "flex mr-5";
+
             container.appendChild(text);
-            container.appendChild(customSellButton("Sell 1", () => {sellColors(item.index, 1)}))
+            container.appendChild(customSellButton("All" + item.index, "Sell All", () => {sellColors(item.index, inventoryCounts[item.index])}, sellButtonOptions))
+            container.appendChild(customSellButton(item.index, "Sell 1", () => {sellColors(item.index, 1)}, sellButtonOptions))
+            container.appendChild(input);
             container.appendChild(toggle);
             inventory.appendChild(container);
         }
@@ -419,15 +447,15 @@ function populateInventory() {
 }
 
 function sellColors(index, count) {
-    if (inventoryCounts[index] > 0) {
+    if (inventoryCounts[index] >= count && count > 0) {
         inventoryCounts[index] -= count;
         updateInventoryCounts(index);
         let rarity = getRarityByIndex(index);
         window.balance += rarity.bonus;
-        bonusToast(displayContainer, rarity.bonus, true, rarity.toastColor)
-        bonusToast(getInventoryContainer(index), 1, false)
+        bonusToast(displayContainer, rarity.bonus * count, true, rarity.toastColor)
+        bonusToast(getInventoryContainer(index), count, false)
     } else {
-        //Cant sell 0 items
+        //Cant sell 0 items, negative items, or 0 items
     }
 }
 
@@ -761,7 +789,7 @@ function debug() {
 
 function createToggle(id, initialState = false) {
     const label = document.createElement('label');
-    label.classList.add('flex', 'cursor-pointer', 'select-none', 'text-dark');
+    label.classList.add('flex', "self-center", 'cursor-pointer', 'select-none', 'text-dark');
 
     const divWrapper = document.createElement('div');
     divWrapper.classList.add('relative');
@@ -808,20 +836,24 @@ function ifAutoSell(index) {
     return toggle.checked;
 }
 
-function customSellButton(text, onClick) {
-    const button = document.createElement("a");
+function customSellButton(id, text, onClick, options) {
+    const button = document.createElement("button");
     
-    button.className = "rounded relative inline-flex group items-center justify-center cursor-pointer border-b-4 border-l-2 active:border-violet-500 active:shadow-none shadow-lg bg-violet-500 border-violet-600 text-white hover:brightness-125 select-none";
+    button.className = options + " rounded relative inline-flex group items-center justify-center cursor-pointer border-b-4 border-l-2 active:border-indigo-500 active:shadow-none shadow-lg bg-indigo-500 border-indigo-600 text-white hover:brightness-125 select-none";
+    button.id = "sell" + id;
     
-    const spanText = document.createElement("span");
-    spanText.className = "relative w-full active:translate-y-0.25 active:-translate-x-0.25 px-3.5 py-1.5";
-    spanText.textContent = text;
-    
-    button.appendChild(spanText);
+    button.appendChild(sellButtonText(text));
     
     if (typeof onClick === "function") {
         button.addEventListener("click", onClick);
     }
     
     return button;
+}
+
+function sellButtonText(text) {
+    const spanText = document.createElement("span");
+    spanText.className = "relative w-full active:translate-y-0.25 active:-translate-x-0.25 px-3.5 py-1.5";
+    spanText.textContent = text;
+    return spanText;
 }
