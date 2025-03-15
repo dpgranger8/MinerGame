@@ -33,7 +33,13 @@ let mouseState = {
     farmAreaOffsets: []
 };
 
-let autoFarmerTiles = [];
+let buildingTiles = [];
+
+function findBuildingTileIndex(building, index) {
+    return Object.values(buildingTiles).find((element) => {
+        return (element.name === building) && (element.tile === index);
+    })
+}
 
 const rewards = {
     common: { index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]", farmTime: 1 },
@@ -50,9 +56,9 @@ let shopUpgrades = {
     rarityTier: { name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => { return 5 }, modifier: (level) => { return level; }, cost: (level) => { return level == 0 ? 1 : (10 * level); }, onUpgrade: () => { resetColorGrid(); } },
     expansion: { name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => { return 3 }, modifier: (level) => { return level; }, cost: (level) => { return (100 * (level + 1)); }, onUpgrade: () => { resetColorGrid(); shopUpgrades.farmer.maxLevel(); populateShop(); } },
     replanting: { name: "Re-seed Farm Colors", image: "src/images/replanting.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { resetColorGrid(); } },
-    farmer: { name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => { return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { placeBuilding(); } },
+    farmer: { name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => { return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { placeBuilding("autoFarmer"); } },
     autoFarmerSpeed: { name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return Number((0.1 + (level / 10)).toFixed(1)); }, cost: (level) => { return (level + 1) ** 4; }, onUpgrade: () => { } },
-    //multiplier: {name: "Multiplier", image: "src/images/multiplier.png", level: 0, maxLevel: () => {return NaN}, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => {}},
+    upgradeTile: {name: "Add Upgrade Tile", image: "src/images/upgrade.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => { placeBuilding("upgradeTile") }},
     hoverArea: { name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => { return 8 }, modifier: (level) => { return level; }, cost: (level) => { return 10 ** (level + 1); }, onUpgrade: (level) => { setFarmAreaOffsets(shopUpgrades.hoverArea.level) } }
 };
 
@@ -96,29 +102,32 @@ function populateColorGrid() {
             margin.classList.add("extraPadding", "p-0.75", "flex");
             margin.id = ("margin" + i);
 
-            button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
+            if (findBuildingTileIndex("upgradeTile", i)) {
+                addUpgradeTile(button, i);
+            } else {
+                button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
-            margin.addEventListener("mouseover", () => {
-                statusText.textContent = "";
-                startAngleIncrease(i)
-                mouseState.whichTile = i;
-                hoverOtherTiles(true);
-            });
+                margin.addEventListener("mouseover", () => {
+                    statusText.textContent = "";
+                    startAngleIncrease(i)
+                    mouseState.whichTile = i;
+                    hoverOtherTiles(true);
+                });
+    
+                margin.addEventListener("mouseleave", () => {
+                    startAngleDecrease(i)
+                    mouseState.whichTile = i;
+                    hoverOtherTiles(false);
+                })
+            }
 
-            margin.addEventListener("mouseleave", () => {
-                startAngleDecrease(i)
-                mouseState.whichTile = i;
-                hoverOtherTiles(false);
-            })
             grid.appendChild(nodeContainer);
             nodeContainer.appendChild(margin);
             margin.appendChild(button);
 
-            autoFarmerTiles.forEach((index) => {
-                if (index === i) {
-                    addAutoFarmer(margin, index);
-                }
-            });
+            if (findBuildingTileIndex("autoFarmer", i)) {
+                addAutoFarmer(margin, i);
+            }
         } else {
             let button = document.createElement("button");
             button.classList.add("nodeButton");
@@ -130,12 +139,16 @@ function populateColorGrid() {
     }
 }
 
-function placeBuilding() {
+function placeBuilding(building) {
     //This code is very similar to populateColorGrid because it is populating a fake grid to show as a selection screen to place buildings on.
     //Currently this only places auto farmers but more buildings are planned.
     //The real grid is hidden temporarily to allow the fake grid to show as a selection screen.
-    let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(item => !autoFarmerTiles.includes(item));
-    statusText.textContent = "Select a tile to place Auto Farmer on!"
+    let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(index => !findBuildingTileIndex("autoFarmer", index));
+    if (building === "autoFarmer") {
+        statusText.textContent = "Select a tile to place Auto Farmer on!"
+    } else {
+        statusText.textContent = "Select a tile to place Upgrade on!"
+    }
     let blur = ["opacity-50", "pointer-events-none"];
     balanceHeader.classList.add(blur[0], blur[1]);
     shopContainer.classList.add(blur[0], blur[1]);
@@ -172,8 +185,13 @@ function placeBuilding() {
                 raritiesContainer.classList.remove(blur[0], blur[1]);
 
                 let marginToEdit = document.getElementById("margin" + i);
-                addAutoFarmer(marginToEdit, i);
-                autoFarmerTiles.push(i);
+                let nodeToEdit = document.getElementById("node" + i);
+                if (building === "autoFarmer") {
+                    addAutoFarmer(marginToEdit, i);
+                } else {
+                    addUpgradeTile(nodeToEdit, i);
+                }
+                buildingTiles.push({name: building, tile: i});
                 shopUpgrades.farmer.maxLevel();
                 storeData();
             });
@@ -195,6 +213,13 @@ function placeBuilding() {
 function addAutoFarmer(element, index) {
     element.classList.add("autoFarmer");
     startAngleIncrease(index, true);
+}
+
+function addUpgradeTile(element, index) {
+    element.classList.add("upgradeTile");
+    element.style.backgroundImage = "url(src/images/upgrade.png), linear-gradient(blueviolet, indigo)";
+    element.style.backgroundSize = 'cover, cover'; // Ensures both layers cover the element
+    element.style.backgroundPosition = 'center, center'; // Centers both layers
 }
 
 function hoverOtherTiles(add) {
@@ -250,7 +275,7 @@ function startAngleIncrease(index, fromAutoFarmer = false) {
     clearInterval(state.interval);
     state.interval = undefined;
     state.interval = setInterval(() => {
-        let shouldDoubleFarm = (autoFarmerTiles.includes(index) && !fromAutoFarmer);
+        let shouldDoubleFarm = (findBuildingTileIndex("autoFarmer", index) && !fromAutoFarmer);
         if (shouldDoubleFarm) {
             state.endAngle += farmSpeedCalculation(state.currentItem, true)
                 + farmSpeedCalculation(state.currentItem);
@@ -274,7 +299,7 @@ function startAngleDecrease(index) {
         clearInterval(state.interval);
         state.interval = undefined;
         state.interval = setInterval(() => {
-            if (autoFarmerTiles.includes(index)) {
+            if (findBuildingTileIndex("autoFarmer", index)) {
                 state.endAngle += farmSpeedCalculation(state.currentItem, true)
                 doIncreaseAction(state, index);
             } else {
@@ -728,7 +753,7 @@ function setFarmAreaOffsets(level) {
 function storeData() {
     localStorage.setItem("levels", JSON.stringify(getShopLevels()));
     localStorage.setItem("balance", window.balance);
-    localStorage.setItem("autoFarmers", JSON.stringify(autoFarmerTiles));
+    localStorage.setItem("buildingTiles", JSON.stringify(buildingTiles));
     localStorage.setItem("statusText", statusText.textContent);
     localStorage.setItem("inventoryCounts", JSON.stringify(inventoryCounts));
 }
@@ -746,7 +771,7 @@ function retrieveData() {
     } else {
         // Any additional storage retrieval must come before the object.values statement
         let levels = JSON.parse(localStorage.getItem("levels"));
-        autoFarmerTiles = JSON.parse(localStorage.getItem("autoFarmers"));
+        buildingTiles = JSON.parse(localStorage.getItem("buildingTiles"));
 
         let counts = JSON.parse(localStorage.getItem("inventoryCounts"));
         if (counts == null || counts.length === 0) {
@@ -757,7 +782,7 @@ function retrieveData() {
         let counter = 0;
         Object.values(shopUpgrades).forEach(upgrade => {
             if (upgrade.name === "Add Auto Farmer") {
-                upgrade.level = autoFarmerTiles.length; // Prevents incorrect count bug where the page was refreshed before a building could be placed
+                upgrade.level = buildingTiles.length; // Prevents incorrect count bug where the page was refreshed before a building could be placed
             } else {
                 upgrade.level = levels[counter];
             }
@@ -781,7 +806,7 @@ function getShopLevels() {
 function debug() {
     localStorage.removeItem("levels");
     localStorage.removeItem("balance");
-    localStorage.removeItem("autoFarmers");
+    localStorage.removeItem("buildingTiles");
     localStorage.removeItem("statusText");
     localStorage.removeItem("inventoryCounts");
     location.reload();
