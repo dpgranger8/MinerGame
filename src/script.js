@@ -12,6 +12,11 @@ const inventory = document.getElementById("inventory");
 let color1Choices = ["moccasin", "navajowhite"];
 let color2Choices = ["burlywood", "sandybrown"];
 
+const BuildingType = {
+    autoFarmer: "autoFarmer",
+    upgradeTile: "upgradeTile"
+}
+
 let tileStates = {};
 
 let inventoryCounts = [0, 0, 0, 0, 0, 0];
@@ -36,13 +41,24 @@ let mouseState = {
 let buildingTiles = [];
 
 function findBuildingTileIndex(building, index) {
-    return Object.values(buildingTiles).find((element) => {
+    return Object.values(buildingTiles).find(element => {
         return (element.name === building) && (element.tile === index);
     })
 }
 
+/**
+ * returns an array with only the specified buildings
+ * @param {String} building 
+ */
+
+function filterBuildings(building) {
+    return Object.values(buildingTiles).filter(element => {
+        return (element.name === building);
+    })
+}
+
 function findTileIndex(index) {
-    return Object.values(buildingTiles).find((element) => {
+    return Object.values(buildingTiles).find(element => {
         return element.tile === index;
     })
 }
@@ -62,11 +78,12 @@ let shopUpgrades = {
     rarityTier: { name: "Add Color", image: "src/images/color-wheel.png", level: 0, maxLevel: () => { return 5 }, modifier: (level) => { return level; }, cost: (level) => { return level == 0 ? 1 : (10 * level); }, onUpgrade: () => { resetColorGrid(); } },
     expansion: { name: "Expand Farm", image: "src/images/expand.png", level: 0, maxLevel: () => { return 3 }, modifier: (level) => { return level; }, cost: (level) => { return (100 * (level + 1)); }, onUpgrade: () => { resetColorGrid(); shopUpgrades.farmer.maxLevel(); populateShop(); } },
     replanting: { name: "Re-seed Farm Colors", image: "src/images/replanting.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { resetColorGrid(); } },
-    farmer: { name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => { return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { placeBuilding("autoFarmer"); } },
+    farmer: { name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => { return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { placeBuilding(BuildingType.autoFarmer); } },
     autoFarmerSpeed: { name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return Number((0.1 + (level / 10)).toFixed(1)); }, cost: (level) => { return (level + 1) ** 4; }, onUpgrade: () => { } },
-    upgradeTile: {name: "Add Upgrade Tile", image: "src/images/upgrade.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => { placeBuilding("upgradeTile"); }},
+    upgradeTile: {name: "Add Upgrade Tile", image: "src/images/upgrade.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => { placeBuilding(BuildingType.upgradeTile); }},
     hoverArea: { name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => { return 8 }, modifier: (level) => { return level; }, cost: (level) => { return 10 ** (level + 1); }, onUpgrade: (level) => { setFarmAreaOffsets(shopUpgrades.hoverArea.level) } }
 };
+
 
 (() => {
     retrieveData();
@@ -112,7 +129,7 @@ function populateColorGrid() {
             nodeContainer.appendChild(margin);
             margin.appendChild(button);
 
-            if (findBuildingTileIndex("upgradeTile", i)) {
+            if (findBuildingTileIndex(BuildingType.upgradeTile, i)) {
                 addUpgradeTile(button, i);
             } else {
                 button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
@@ -123,7 +140,7 @@ function populateColorGrid() {
                     mouseState.whichTile = i;
                     hoverOtherTiles(true);
                 });
-    
+
                 margin.addEventListener("mouseleave", () => {
                     startAngleDecrease(i)
                     mouseState.whichTile = i;
@@ -131,7 +148,7 @@ function populateColorGrid() {
                 })
             }
 
-            if (findBuildingTileIndex("autoFarmer", i)) {
+            if (findBuildingTileIndex(BuildingType.autoFarmer, i)) {
                 addAutoFarmer(margin, i);
             }
         } else {
@@ -149,7 +166,7 @@ function placeBuilding(building) {
     //This code is very similar to populateColorGrid because it is populating a fake grid to show as a selection screen to place buildings on.
     //The real grid is hidden temporarily to allow the fake grid to show as a selection screen.
     let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(index => !findTileIndex(index));
-    if (building === "autoFarmer") {
+    if (building === BuildingType.autoFarmer) {
         statusText.textContent = "Select a tile to place Auto Farmer on!"
     } else {
         statusText.textContent = "Select a tile to place Upgrade on!"
@@ -189,7 +206,7 @@ function placeBuilding(building) {
                 shopContainer.classList.remove(blur[0], blur[1]);
                 raritiesContainer.classList.remove(blur[0], blur[1]);
 
-                if (building === "autoFarmer") {
+                if (building === BuildingType.autoFarmer) {
                     let marginToEdit = document.getElementById("margin" + i);
                     addAutoFarmer(marginToEdit, i);
                 } else {
@@ -197,7 +214,7 @@ function placeBuilding(building) {
                     console.log(realNode);
                     addUpgradeTile(realNode, i);
                 }
-                buildingTiles.push({name: building, tile: i});
+                buildingTiles.push({ name: building, tile: i });
                 shopUpgrades.farmer.maxLevel();
                 storeData();
             });
@@ -217,31 +234,20 @@ function placeBuilding(building) {
 }
 
 function addAutoFarmer(element, index) {
-    element.classList.add("autoFarmer");
+    element.classList.add(BuildingType.autoFarmer);
     startAngleIncrease(index, true);
 }
 
 function addUpgradeTile(element, index) {
-    //I cant figure this out what a load of bullcrap
     let newElement = element.cloneNode(true);
     let theMargin = document.getElementById("margin" + index);
 
-    // let state = Object.values(tileStates).find(element => {element.index})
-    // if (state.interval) {
-    //     clearInterval(state.interval);
-    //     state.interval = undefined;
-    // }
-    setTimeout(() => {
-        newElement.id = "node" + index;
+    newElement.id = "node" + index;
     newElement.style.backgroundImage = "url(src/images/upgrade.png), linear-gradient(blueviolet, indigo)";
     newElement.style.backgroundSize = 'cover, cover';
 
     theMargin.appendChild(newElement);
     theMargin.removeChild(element);
-    }, 1000)
-
-    console.log('reached');
-    console.log(newElement);
 }
 
 function hoverOtherTiles(add) {
@@ -293,11 +299,12 @@ function farmSpeedCalculation(item, autoFarmer = false) {
  */
 
 function startAngleIncrease(index, fromAutoFarmer = false) {
+    if (findBuildingTileIndex(BuildingType.upgradeTile, index)) {return}
     let state = tileStates[index];
     clearInterval(state.interval);
     state.interval = undefined;
     state.interval = setInterval(() => {
-        let shouldDoubleFarm = (findBuildingTileIndex("autoFarmer", index) && !fromAutoFarmer);
+        let shouldDoubleFarm = (findBuildingTileIndex(BuildingType.autoFarmer, index) && !fromAutoFarmer);
         if (shouldDoubleFarm) {
             state.endAngle += farmSpeedCalculation(state.currentItem, true)
                 + farmSpeedCalculation(state.currentItem);
@@ -321,7 +328,7 @@ function startAngleDecrease(index) {
         clearInterval(state.interval);
         state.interval = undefined;
         state.interval = setInterval(() => {
-            if (findBuildingTileIndex("autoFarmer", index)) {
+            if (findBuildingTileIndex(BuildingType.autoFarmer, index)) {
                 state.endAngle += farmSpeedCalculation(state.currentItem, true)
                 doIncreaseAction(state, index);
             } else {
@@ -453,7 +460,7 @@ function populateInventory() {
             text.textContent = inventoryCounts[item.index];
             text.id = "inventoryCount" + item.index;
 
-            let toggle = createToggle(item.index, (item.index === 0) ? true : false);
+            let toggle = createToggle(item.index, true);
 
             let input = document.createElement("input");
             input.className = "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -465,27 +472,27 @@ function populateInventory() {
             input.min = 1;
             input.addEventListener("input", (event) => {
                 event.target.value = Math.max(0, Math.floor(event.target.value || 0));
-            
+
                 let index = input.id.replace("quantityInput", "");
                 let sellButton = document.getElementById("sell" + index);
-            
+
                 sellButton.innerHTML = "";
                 sellButton.appendChild(sellButtonText("Sell " + event.target.value));
 
                 sellButton.replaceWith(sellButton.cloneNode(true));
                 sellButton = document.getElementById("sell" + index);
-            
+
                 sellButton.addEventListener("click", () => {
                     return sellColors(item.index, event.target.value);
                 });
             });
-            
+
 
             let sellButtonOptions = "flex mr-5";
 
             container.appendChild(text);
-            container.appendChild(customSellButton("All" + item.index, "Sell All", () => {sellColors(item.index, inventoryCounts[item.index])}, sellButtonOptions))
-            container.appendChild(customSellButton(item.index, "Sell 1", () => {sellColors(item.index, 1)}, sellButtonOptions))
+            container.appendChild(customSellButton("All" + item.index, "Sell All", () => { sellColors(item.index, inventoryCounts[item.index]) }, sellButtonOptions))
+            container.appendChild(customSellButton(item.index, "Sell 1", () => { sellColors(item.index, 1) }, sellButtonOptions))
             container.appendChild(input);
             container.appendChild(toggle);
             inventory.appendChild(container);
@@ -502,12 +509,12 @@ function sellColors(index, count) {
         bonusToast(displayContainer, rarity.bonus * count, true, rarity.toastColor)
         bonusToast(getInventoryContainer(index), count, false)
     } else {
-        //Cant sell 0 items, negative items, or 0 items
+        //Cant sell 0 items, or negative items
     }
 }
 
 function getRarityByIndex(index) {
-    return Object.values(rewards).find(value => {return value.index === index})
+    return Object.values(rewards).find(value => { return value.index === index })
 }
 
 function getInventoryContainer(index) {
@@ -804,7 +811,9 @@ function retrieveData() {
         let counter = 0;
         Object.values(shopUpgrades).forEach(upgrade => {
             if (upgrade.name === "Add Auto Farmer") {
-                upgrade.level = buildingTiles.length; // Prevents incorrect count bug where the page was refreshed before a building could be placed
+                upgrade.level = filterBuildings(BuildingType.autoFarmer).length; // Prevents incorrect count bug where the page was refreshed before a building could be placed
+            } else if (upgrade.name === "Add Upgrade Tile") {
+                upgrade.level = filterBuildings("upgradeTile").length
             } else {
                 upgrade.level = levels[counter];
             }
@@ -854,7 +863,7 @@ function createToggle(id, initialState = false) {
     const dotDiv = document.createElement('div');
     dotDiv.classList.add('absolute', 'flex', 'items-center', 'justify-center', 'w-4', 'h-4', 'transition', 'bg-blue-400', 'rounded-full', 'dot', 'left-1', 'top-1');
     dotDiv.classList.add('peer-checked:translate-x-full', 'peer-checked:bg-green-500');
-    
+
     divWrapper.appendChild(input);
     divWrapper.appendChild(divBlock);
     divWrapper.appendChild(dotDiv);
@@ -885,16 +894,16 @@ function ifAutoSell(index) {
 
 function customSellButton(id, text, onClick, options) {
     const button = document.createElement("button");
-    
+
     button.className = options + " rounded relative inline-flex group items-center justify-center cursor-pointer border-b-4 border-l-2 active:border-indigo-500 active:shadow-none shadow-lg bg-indigo-500 border-indigo-600 text-white hover:brightness-125 select-none";
     button.id = "sell" + id;
-    
+
     button.appendChild(sellButtonText(text));
-    
+
     if (typeof onClick === "function") {
         button.addEventListener("click", onClick);
     }
-    
+
     return button;
 }
 
