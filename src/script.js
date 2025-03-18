@@ -41,6 +41,12 @@ function findBuildingTileIndex(building, index) {
     })
 }
 
+function findTileIndex(index) {
+    return Object.values(buildingTiles).find((element) => {
+        return element.tile === index;
+    })
+}
+
 const rewards = {
     common: { index: 0, rarity: "common", colors: ["aquamarine", "lime"], chance: [100, 80, 74, 72.5, 72.01, 72], bonus: 1, toastColor: "text-[#006400]", farmTime: 1 },
     uncommon: { index: 1, rarity: "uncommon", colors: ["aqua", "darkturquoise"], chance: [0, 20, 20, 20, 20, 20], bonus: 5, toastColor: "text-[#0000ff]", farmTime: 2 },
@@ -58,7 +64,7 @@ let shopUpgrades = {
     replanting: { name: "Re-seed Farm Colors", image: "src/images/replanting.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { resetColorGrid(); } },
     farmer: { name: "Add Auto Farmer", image: "src/images/farmer.png", level: 0, maxLevel: () => { return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => { return level; }, cost: (level) => { return (level + 1) ** 2; }, onUpgrade: () => { placeBuilding("autoFarmer"); } },
     autoFarmerSpeed: { name: "Auto Farmer Speed", image: "src/images/speed.png", level: 0, maxLevel: () => { return NaN }, modifier: (level) => { return Number((0.1 + (level / 10)).toFixed(1)); }, cost: (level) => { return (level + 1) ** 4; }, onUpgrade: () => { } },
-    upgradeTile: {name: "Add Upgrade Tile", image: "src/images/upgrade.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => { placeBuilding("upgradeTile") }},
+    upgradeTile: {name: "Add Upgrade Tile", image: "src/images/upgrade.png", level: 0, maxLevel: () => {return getSquareSelection(shopUpgrades.expansion.level + 1).length }, modifier: (level) => {return level;}, cost: (level) => {return level;}, onUpgrade: () => { placeBuilding("upgradeTile"); }},
     hoverArea: { name: "Farm Area", image: "src/images/multi-rectangle.png", level: 0, maxLevel: () => { return 8 }, modifier: (level) => { return level; }, cost: (level) => { return 10 ** (level + 1); }, onUpgrade: (level) => { setFarmAreaOffsets(shopUpgrades.hoverArea.level) } }
 };
 
@@ -102,6 +108,10 @@ function populateColorGrid() {
             margin.classList.add("extraPadding", "p-0.75", "flex");
             margin.id = ("margin" + i);
 
+            grid.appendChild(nodeContainer);
+            nodeContainer.appendChild(margin);
+            margin.appendChild(button);
+
             if (findBuildingTileIndex("upgradeTile", i)) {
                 addUpgradeTile(button, i);
             } else {
@@ -121,10 +131,6 @@ function populateColorGrid() {
                 })
             }
 
-            grid.appendChild(nodeContainer);
-            nodeContainer.appendChild(margin);
-            margin.appendChild(button);
-
             if (findBuildingTileIndex("autoFarmer", i)) {
                 addAutoFarmer(margin, i);
             }
@@ -141,9 +147,8 @@ function populateColorGrid() {
 
 function placeBuilding(building) {
     //This code is very similar to populateColorGrid because it is populating a fake grid to show as a selection screen to place buildings on.
-    //Currently this only places auto farmers but more buildings are planned.
     //The real grid is hidden temporarily to allow the fake grid to show as a selection screen.
-    let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(index => !findBuildingTileIndex("autoFarmer", index));
+    let selection = getSquareSelection(shopUpgrades.expansion.level + 1).filter(index => !findTileIndex(index));
     if (building === "autoFarmer") {
         statusText.textContent = "Select a tile to place Auto Farmer on!"
     } else {
@@ -163,13 +168,13 @@ function placeBuilding(building) {
         if (selection.includes(i)) {
             let nodeContainer = document.createElement("div");
             nodeContainer.classList.add("nodeContainer");
-            nodeContainer.id = ("container" + i);
+            nodeContainer.id = ("fakeContainer" + i);
             let button = document.createElement("button");
             button.classList.add("fakeNodeButton");
-            button.id = ("node" + i);
+            button.id = ("fakeNode" + i);
             let margin = document.createElement("div");
             margin.classList.add("extraPadding", "p-0.75", "flex");
-            margin.id = ("margin" + i);
+            margin.id = ("fakeMargin" + i);
 
             button.style.background = `linear-gradient(${tileStates[i].gradientUnsetLight}, ${tileStates[i].gradientUnsetDark}`;
 
@@ -184,12 +189,13 @@ function placeBuilding(building) {
                 shopContainer.classList.remove(blur[0], blur[1]);
                 raritiesContainer.classList.remove(blur[0], blur[1]);
 
-                let marginToEdit = document.getElementById("margin" + i);
-                let nodeToEdit = document.getElementById("node" + i);
                 if (building === "autoFarmer") {
+                    let marginToEdit = document.getElementById("margin" + i);
                     addAutoFarmer(marginToEdit, i);
                 } else {
-                    addUpgradeTile(nodeToEdit, i);
+                    let realNode = document.getElementById("node" + i);
+                    console.log(realNode);
+                    addUpgradeTile(realNode, i);
                 }
                 buildingTiles.push({name: building, tile: i});
                 shopUpgrades.farmer.maxLevel();
@@ -216,10 +222,26 @@ function addAutoFarmer(element, index) {
 }
 
 function addUpgradeTile(element, index) {
-    element.classList.add("upgradeTile");
-    element.style.backgroundImage = "url(src/images/upgrade.png), linear-gradient(blueviolet, indigo)";
-    element.style.backgroundSize = 'cover, cover'; // Ensures both layers cover the element
-    element.style.backgroundPosition = 'center, center'; // Centers both layers
+    //I cant figure this out what a load of bullcrap
+    let newElement = element.cloneNode(true);
+    let theMargin = document.getElementById("margin" + index);
+
+    // let state = Object.values(tileStates).find(element => {element.index})
+    // if (state.interval) {
+    //     clearInterval(state.interval);
+    //     state.interval = undefined;
+    // }
+    setTimeout(() => {
+        newElement.id = "node" + index;
+    newElement.style.backgroundImage = "url(src/images/upgrade.png), linear-gradient(blueviolet, indigo)";
+    newElement.style.backgroundSize = 'cover, cover';
+
+    theMargin.appendChild(newElement);
+    theMargin.removeChild(element);
+    }, 1000)
+
+    console.log('reached');
+    console.log(newElement);
 }
 
 function hoverOtherTiles(add) {
