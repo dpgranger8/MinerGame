@@ -34,15 +34,13 @@ A browser-based idle/strategy game where you mine tiles, earn currency, and buil
 
   - HTML/CSS
 
-  - DOM-based UI updates
-
-  - LocalStorage used for saving game state
+  - LocalStorage used to save game state
 
 ### How to Run
 
-  - Open the project in your browser (ensure all required HTML and CSS files are in place).
+  - Open the index.html file in your browser.
 
-  - Start mining tiles and earning rewards.
+  - Start mining tiles and upgrading your farm.
 
   - Use your earnings to buy upgrades and automate gameplay.
 
