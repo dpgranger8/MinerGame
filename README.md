@@ -1,3 +1,5 @@
+![Miner Game Screenshot](https://github.com/dpgranger8/MinerGame/blob/main/Miner-Game-Screenshot.png?raw=true "Title")
+
 ### Tile Mining Game
 
 A browser-based idle/strategy game where you mine tiles, earn currency, and build upgrades. The goal is to farm increasingly rare rewards and automate your tile mining process for maximum efficiency.
